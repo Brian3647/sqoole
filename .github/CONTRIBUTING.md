@@ -11,7 +11,7 @@ SUPABASE_KEY=(db's password)
 SUPABASE_URL=(your supabase project URL)
 ```
 
-Table schemas can be created based on [`src/api/types.d.ts`](/src/api/types.d.ts). Probably will add screenshots on the future.
+Tables set-up can be found on [DATABASE_SETUP.md](./DATABASE_SETUP.md). Please note it might not be updated as of every commit (I forget things easily), so I recommend reading the api's code you want to touch just in case.
 
 ## **The front-end (pain)**
 
