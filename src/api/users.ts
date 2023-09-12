@@ -3,7 +3,6 @@ import { Error, Ok, Result } from '../utils/result';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
 import { createB64ID } from '../utils/general';
-import bcrypt from 'bcrypt';
 
 export default async function userApiHandler(
 	path: string[],
@@ -16,11 +15,6 @@ export default async function userApiHandler(
 		default:
 			return Error(new ServerError('User', 'Unexistent API route', 404));
 	}
-}
-
-async function hash(password: string): string {
-	const salt = bcrypt.genSalt();
-	return await bcrypt.hash(password, salt);
 }
 
 async function createUser(
@@ -63,7 +57,7 @@ async function createUser(
 		);
 	}
 
-	const password = hash(options.password);
+	const password = await Bun.password.hash(options.password);
 	let id;
 	let possibleUser: Array<User> = [{ id: '', username: '', password: '' }];
 

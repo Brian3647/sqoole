@@ -9,7 +9,6 @@
     "build-web": "cd web && bun run generate"
   },
   "devDependencies": {
-    "@types/bcrypt": "^5.0.0",
     "bun-types": "latest",
     "prettier": "^3.0.3"
   },
@@ -18,7 +17,6 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.33.2",
-    "bcrypt": "^5.1.1",
     "crypto": "^1.0.1"
   }
 }
