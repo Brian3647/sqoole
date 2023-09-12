@@ -35,4 +35,4 @@ This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licens
 [issues-shield]: https://img.shields.io/github/issues/Brian3647/sqoole.svg?style=for-the-badge
 [issues-url]: https://github.com/Brian3647/sqoole/issues
 [pr-shield]: https://img.shields.io/github/issues-pr/Brian3647/sqoole.svg?style=for-the-badge
-[pr-url]: https://github.com/Brian3647/issues-pr/blob/master/LICENSE.txt
+[pr-url]: https://github.com/Brian3647/sqoole/pulls

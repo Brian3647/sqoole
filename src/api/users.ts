@@ -95,5 +95,5 @@ async function createUser(
 		);
 	}
 
-	return Ok(new Response(data));
+	return Ok(new Response(JSON.stringify(data)));
 }
