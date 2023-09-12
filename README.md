@@ -7,7 +7,7 @@
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![CC BY-NC-SA 4.0 License][license-shield]][license-url]
+[![Pull requests][pr-shield]][pr-url]
 
   <p align="center">
     <h3>A (WIP) brand new chatting platform focused on simplicty, privacy and speed.</h3>
@@ -34,5 +34,5 @@ This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licens
 [stars-url]: https://github.com/Brian3647/sqoole/stargazers
 [issues-shield]: https://img.shields.io/github/issues/Brian3647/sqoole.svg?style=for-the-badge
 [issues-url]: https://github.com/Brian3647/sqoole/issues
-[license-shield]: https://img.shields.io/github/license/Brian3647/sqoole.svg?style=for-the-badge
-[license-url]: https://github.com/Brian3647/sqoole/blob/master/LICENSE.txt
+[pr-shield]: https://img.shields.io/github/issues-pr/Brian3647/sqoole.svg?style=for-the-badge
+[pr-url]: https://github.com/Brian3647/issues-pr/blob/master/LICENSE.txt

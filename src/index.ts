@@ -1,4 +1,6 @@
 import Server from './server.ts';
+import { checkENV } from './utils/general.ts';
+import { createClient } from '@supabase/supabase-js';
 
 const port = 3000;
 
@@ -13,4 +15,12 @@ if (serverCheck.success) {
 	Bun.spawnSync(['kill', serverCheck.stdout.toString()]);
 }
 
-new Server(port).start();
+const dbClient = createClient(
+	checkENV('SUPABASE_URL'),
+	checkENV('SUPABASE_KEY'),
+	{
+		auth: { persistSession: false }
+	}
+);
+
+new Server(port, dbClient).start();

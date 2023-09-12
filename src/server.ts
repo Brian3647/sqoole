@@ -1,57 +1,58 @@
-import { debug } from './utils/log.ts';
-import { Ok, Result } from './utils/result.ts';
-import static_handler from './static.ts';
-import api_handler from './api/handler.ts';
+import { Result } from './utils/result.ts';
+import staticHandler from './static.ts';
+import apiHandler from './api/api.ts';
 import path from 'node:path';
+import { SupabaseClient } from '@supabase/supabase-js';
 
 const files = path.join(import.meta.dir, '..', 'web', 'dist');
+let databaseClient: SupabaseClient;
 
 export default class Server {
 	port!: number;
+	dbClient!: SupabaseClient;
 
-	constructor(port: number) {
+	constructor(port: number, dbClient: SupabaseClient) {
 		this.port = port;
+		databaseClient = dbClient;
+	}
+
+	async fetch(request: Request): Promise<Response> {
+		const server_response = await handleRequest(request, files, databaseClient);
+		if (server_response.isOk()) return server_response.value as Response;
+
+		let error = server_response.value as ServerError;
+		if (error === undefined) {
+			error = new ServerError(
+				'Unknown',
+				'Unknown server error, probably due to lack of error handling.',
+				500
+			);
+		}
+
+		error.log(request.url);
+		return error.intoResponse();
 	}
 
 	public start() {
 		Bun.serve({
-			port: this.port,
-			fetch(request: Request): Response {
-				const server_response = handleRequest(request, files);
-
-				return server_response.unwrapOr((error): Response => {
-					if (error === undefined) {
-						error = new ServerError(
-							'Unknown',
-							'Unknown server error, probably due to lack of error handling.',
-							500
-						);
-					}
-
-					error.log();
-					console.error(request.url);
-					return error.intoResponse();
-				});
-			}
+			port: process.env.PORT || this.port,
+			fetch: this.fetch
 		});
 	}
 }
 
-function handleRequest(
+async function handleRequest(
 	request: Request,
-	files: string
-): Result<Response, ServerError> {
+	files: string,
+	dbClient: SupabaseClient
+): Promise<Result<Response, ServerError>> {
 	const path = request.url.split('/').slice(3);
 
-	let handler_response;
-
 	if (path[0] === 'api') {
-		handler_response = api_handler(path, request);
+		return await apiHandler(path, request, dbClient);
 	} else {
-		handler_response = static_handler(path, files);
+		return staticHandler(path, files);
 	}
-
-	return handler_response;
 }
 
 /// Server Error management
@@ -77,11 +78,16 @@ export class ServerError {
 		);
 	}
 
-	public log() {
+	public log(route?: string) {
 		if (this.errorType === 'User') return;
 
+		if (route) {
+			console.error('Error with request to ' + route);
+		}
+
 		console.error(
-			`[INTERNAL SERVER ERROR] [TYPE: ${this.errorType}]: ${this.message}`
+			`[INTERNAL SERVER ERROR] [FROM: ${this.errorType}]: ${this.message}` +
+				'\n---'
 		);
 	}
 }

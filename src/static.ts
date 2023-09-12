@@ -1,10 +1,9 @@
 import { ServerError } from './server';
 import { Ok, Error, Result } from './utils/result';
-import { debug } from './utils/log';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 
-export default function static_handler(
+export default function staticHandler(
 	url: string[],
 	files: string
 ): Result<Response, ServerError> {

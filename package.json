@@ -1,18 +1,24 @@
 {
-	"name": "sqoole",
-	"module": "src/index.ts",
-	"type": "module",
-	"scripts": {
-		"watch-web": "cd web && bun run dev",
-		"watch-server": "bun run --watch src/index.ts",
-		"start": "bun run src/index.ts",
-		"build-web": "cd web && bun run generate"
-	},
-	"devDependencies": {
-		"bun-types": "latest",
-		"prettier": "^3.0.3"
-	},
-	"peerDependencies": {
-		"typescript": "^5.0.0"
-	}
+  "name": "sqoole",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "watch-web": "cd web && bun run dev",
+    "watch-server": "bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "build-web": "cd web && bun run generate"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^5.0.0",
+    "bun-types": "latest",
+    "prettier": "^3.0.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.33.2",
+    "bcrypt": "^5.1.1",
+    "crypto": "^1.0.1"
+  }
 }
