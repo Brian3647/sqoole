@@ -1,7 +1,7 @@
 import { ServerError } from '../server';
 import { Error, Ok, Result } from '../utils/result';
 import { SupabaseClient } from '@supabase/supabase-js';
-import userApiHandler from './users';
+import userApiHandler from './users/main';
 
 export default async function apiHandler(
 	path: string[],

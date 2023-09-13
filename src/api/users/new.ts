@@ -1,23 +1,10 @@
-import { ServerError } from '../server';
-import { Error, Ok, Result } from '../utils/result';
+import { ServerError } from '../../server';
+import { Error, Ok, Result } from '../../utils/result';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
-import { createB64ID } from '../utils/general';
+import { createB64ID } from '../../utils/general';
 
-export default async function userApiHandler(
-	path: string[],
-	request: Request,
-	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	switch (path[2]) {
-		case 'new':
-			return await createUser(request, dbClient);
-		default:
-			return Error(new ServerError('User', 'Unexistent API route', 404));
-	}
-}
-
-async function createUser(
+export async function createUser(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Result<Response, ServerError>> {
@@ -89,5 +76,9 @@ async function createUser(
 		);
 	}
 
-	return Ok(new Response(JSON.stringify(data)));
+	const returnObject = JSON.stringify({
+		token: data[0].password
+	});
+
+	return Ok(new Response(returnObject));
 }
