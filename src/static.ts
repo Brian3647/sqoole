@@ -1,5 +1,5 @@
-import { ServerError } from './server';
-import { Ok, Error, Result } from './utils/result';
+import { ServerError } from '$server';
+import { Ok, Error, Result } from '$utils/result';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 

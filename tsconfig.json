@@ -17,7 +17,11 @@
 		"allowJs": true,
 		"types": [
 			"bun-types" // add Bun global
-		]
+		],
+		"paths": {
+			"$utils/*": ["./src/utils/*"],
+			"$server*": ["./src/server.ts"]
+		}
 	},
 
 	"include": ["./**/*.ts"]

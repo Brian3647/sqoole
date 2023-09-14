@@ -1,4 +1,4 @@
-import { Result } from './utils/result.ts';
+import { Result } from '$utils/result.ts';
 import staticHandler from './static.ts';
 import apiHandler from './api/api.ts';
 import path from 'node:path';

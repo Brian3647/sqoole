@@ -1,5 +1,5 @@
-import Server from './server.ts';
-import { checkENV } from './utils/general.ts';
+import Server from '$server.ts';
+import { checkENV } from '$utils/general.ts';
 import { createClient } from '@supabase/supabase-js';
 
 const port = 3000;

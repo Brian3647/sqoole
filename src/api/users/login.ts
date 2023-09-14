@@ -1,5 +1,5 @@
-import { ServerError } from '../../server';
-import { Error, Ok, Result } from '../../utils/result';
+import { ServerError } from '$server';
+import { Error, Ok, Result } from '$utils/result';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
 
