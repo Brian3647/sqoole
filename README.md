@@ -8,6 +8,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![Pull requests][pr-shield]][pr-url]
+[![MIT License][license-shield]][license-url]
 
   <p align="center">
     <h3>A (WIP) brand new chatting platform focused on simplicty, privacy and speed.</h3>
@@ -19,10 +20,6 @@
 ## **Contributing**
 
 Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for all the information on how to help the project.
-
-## **License**
-
-This work is licensed under the MIT license.
 
 <!-- Links -->
 
@@ -36,3 +33,5 @@ This work is licensed under the MIT license.
 [issues-url]: https://github.com/Brian3647/sqoole/issues
 [pr-shield]: https://img.shields.io/github/issues-pr/Brian3647/sqoole.svg?style=for-the-badge
 [pr-url]: https://github.com/Brian3647/sqoole/pulls
+[license-shield]: https://img.shields.io/github/license/Brian3647/sqoole.svg?style=for-the-badge
+[license-url]: https://github.com/Brian3647/sqoole/blob/main/LICENSE
