@@ -22,7 +22,7 @@ Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for all the information on ho
 
 ## **License**
 
-This work is licensed under [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+This work is licensed under the MIT license.
 
 <!-- Links -->
 
