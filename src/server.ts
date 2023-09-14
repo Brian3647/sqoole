@@ -35,7 +35,7 @@ export default class Server {
 
 	public start() {
 		Bun.serve({
-			port: process.env.PORT || this.port,
+			port: this.port,
 			fetch: this.fetch
 		});
 	}

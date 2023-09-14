@@ -2,7 +2,7 @@ import Server from '$server.ts';
 import { checkENV } from '$utils/general.ts';
 import { createClient } from '@supabase/supabase-js';
 
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
 
 // Checking if there's already a server running on :${port}. This WILL kill it if detected.
 // Used to hot-reload the server in developement.
