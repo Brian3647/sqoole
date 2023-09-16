@@ -32,6 +32,14 @@ export class Result<T, E> {
 
 		return run(this.value as E | undefined);
 	}
+
+	public unwrapError(): E {
+		if (this.isOk()) {
+			throw '[EXPECTED ERROR, GOT OK] ' + this.value;
+		}
+
+		return this.value as E;
+	}
 }
 
 export function Ok<T>(value?: T): Result<T, any> {

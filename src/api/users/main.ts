@@ -3,6 +3,7 @@ import { Error, Result } from '$utils/result';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { createUser } from './new';
 import { login } from './login';
+import { usernameChange } from './nameChange';
 
 export default async function userApiHandler(
 	path: string[],
@@ -14,6 +15,8 @@ export default async function userApiHandler(
 			return await createUser(request, dbClient);
 		case 'login':
 			return await login(request, dbClient);
+		case 'change_username':
+			return await usernameChange(request, dbClient);
 		default:
 			return Error(new ServerError('User', 'Unexistent API route', 404));
 	}

@@ -2,36 +2,25 @@ import { ServerError } from '$server';
 import { Error, Ok, Result } from '$utils/result';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
-import { createB64ID } from '$utils/general';
+import { createB64ID, createToken, getRequestJSON } from '$utils/general';
 
 export async function createUser(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Result<Response, ServerError>> {
-	const requestBody = await request.text();
+	const requestBody = await getRequestJSON<User, ServerError>(
+		request,
+		new ServerError('User', 'Invalid JSON object.', 400)
+	);
 
-	if (!requestBody) {
-		return Error(new ServerError('User', 'Missing body in request', 400));
+	if (requestBody.isError()) {
+		return Error(requestBody.unwrapError());
 	}
 
-	let options: User;
-
-	try {
-		options = JSON.parse(requestBody);
-	} catch (optionsError) {
-		return Error(
-			new ServerError(
-				'User',
-				'Invalid body: needs to be able to be parsed by `JSON.parse`.',
-				400
-			)
-		);
-	}
+	const options = requestBody.unwrap();
 
 	if (!options || !options.username || !options.password) {
-		return Error(
-			new ServerError('User', 'Missing fields on required JSON object', 400)
-		);
+		return Error(new ServerError('User', 'Missing fields.', 400));
 	}
 
 	if (options.password.length > 80 || options.username.length > 80) {
@@ -64,10 +53,7 @@ export async function createUser(
 		username: options.username
 	};
 
-	const { data, error } = await dbClient
-		.from('users')
-		.insert([newUser])
-		.select();
+	const { error } = await dbClient.from('users').insert([newUser]).select();
 
 	if (error) {
 		console.error(error);
@@ -77,7 +63,7 @@ export async function createUser(
 	}
 
 	const returnObject = JSON.stringify({
-		token: data[0].password
+		token: createToken(newUser.username, newUser.password)
 	});
 
 	return Ok(new Response(returnObject));
