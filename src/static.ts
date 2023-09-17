@@ -3,10 +3,10 @@ import { Ok, Error, Result } from '$utils/result';
 import path from 'node:path';
 import { readFileSync } from 'node:fs';
 
-export default function staticHandler(
+export default async function staticHandler(
 	url: string[],
 	files: string
-): Result<Response, ServerError> {
+): Promise<Result<Response, ServerError>> {
 	if (url[0] === '') {
 		return read(files, 'index.html', true);
 	}
@@ -17,15 +17,15 @@ export default function staticHandler(
 		);
 	}
 
-	return read(files, url.join('/'), false);
+	return await read(files, url.join('/'), false);
 }
 
-function read(
+async function read(
 	files: string,
 	selected: string,
 	shouldExist: boolean,
 	code?: number
-): Result<Response, ServerError> {
+): Promise<Result<Response, ServerError>> {
 	selected = path.join(files, selected);
 	const bunFile = Bun.file(selected);
 
@@ -39,7 +39,10 @@ function read(
 		return read(files, '404.html', true, 404);
 	}
 
-	const fileContents = readFileSync(selected).toString();
+	// FIXME
+	// <Bun File>.text() is giving me strange errors. Might be fixed in the future.
+	// For now, this works just fine.
+	const fileContents = readFileSync(selected);
 
 	return Ok(
 		new Response(fileContents, {

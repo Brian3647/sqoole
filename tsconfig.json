@@ -20,7 +20,10 @@
 		],
 		"paths": {
 			"$utils/*": ["./src/utils/*"],
-			"$server*": ["./src/server.ts"]
+			"$server*": ["./src/server.ts"],
+			"$ws/*": ["./src/ws/*"],
+			"$chats/*": ["./src/api/chats/*"],
+			"$users/*": ["./src/api/users/*"]
 		}
 	},
 

@@ -35,7 +35,7 @@ export async function createUser(
 
 	const password = await Bun.password.hash(options.password);
 	let id;
-	let possibleUser: Array<User> = [{ id: '', username: '', password: '' }];
+	let possibleUser: Array<User | 0> = [0];
 
 	while (possibleUser.length !== 0) {
 		const { data: possibleUserTry } = await dbClient
@@ -50,7 +50,8 @@ export async function createUser(
 	const newUser: User = {
 		id: id!,
 		password: password.toString(),
-		username: options.username
+		username: options.username,
+		in_chats: []
 	};
 
 	const { error } = await dbClient.from('users').insert([newUser]).select();

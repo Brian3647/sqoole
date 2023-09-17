@@ -17,6 +17,10 @@
 
 </div>
 
+## **API**
+
+Refer to [API_ROUTES.md](./API_ROUTES.md) for a guide on how to use the API.
+
 ## **Contributing**
 
 Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for all the information on how to help the project.

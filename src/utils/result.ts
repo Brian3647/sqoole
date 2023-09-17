@@ -27,10 +27,16 @@ export class Result<T, E> {
 		return this.value as T;
 	}
 
-	public unwrapOr(run: unwrapOrFunction<T, E>): T {
+	public unwrapOr(run_or_value: unwrapOrFunction<T, E> | T): T {
 		if (this.isOk()) return this.value as T;
 
-		return run(this.value as E | undefined);
+		if (typeof run_or_value === 'function') {
+			return (run_or_value as unwrapOrFunction<T, E>)(
+				this.value as E | undefined
+			);
+		}
+
+		return run_or_value;
 	}
 
 	public unwrapError(): E {

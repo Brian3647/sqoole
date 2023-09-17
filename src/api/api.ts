@@ -2,6 +2,7 @@ import { ServerError } from '$server';
 import { Error, Ok, Result } from '$utils/result';
 import { SupabaseClient } from '@supabase/supabase-js';
 import userApiHandler from './users/main';
+import chatsApiHandler from './chats/main';
 
 export default async function apiHandler(
 	path: string[],
@@ -13,6 +14,8 @@ export default async function apiHandler(
 			return Ok(new Response('Pong!'));
 		case 'users':
 			return await userApiHandler(path, request, dbClient);
+		case 'chats':
+			return await chatsApiHandler(path, request, dbClient);
 		default:
 			return Error(new ServerError('User', 'Unexistent API route', 404));
 	}

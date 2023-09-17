@@ -3,9 +3,13 @@ import staticHandler from './static.ts';
 import apiHandler from './api/api.ts';
 import path from 'node:path';
 import { SupabaseClient } from '@supabase/supabase-js';
+import WebSocketServer from './ws/server.ts';
+import { Server as BunServer } from 'bun';
+import { debug } from '$utils/general.ts';
 
 const files = path.join(import.meta.dir, '..', 'web', 'dist');
 let databaseClient: SupabaseClient;
+let webSocketServer: WebSocketServer;
 
 export default class Server {
 	port!: number;
@@ -14,9 +18,15 @@ export default class Server {
 	constructor(port: number, dbClient: SupabaseClient) {
 		this.port = port;
 		databaseClient = dbClient;
+		webSocketServer = new WebSocketServer(dbClient);
 	}
 
-	async fetch(request: Request): Promise<Response> {
+	async fetch(
+		request: Request,
+		server: BunServer
+	): Promise<Response | undefined> {
+		if (debug(webSocketServer.upgrade(request, server)?.ok)) return;
+
 		const server_response = await handleRequest(request, files, databaseClient);
 		if (server_response.isOk()) return server_response.value as Response;
 
@@ -36,8 +46,14 @@ export default class Server {
 	public start() {
 		Bun.serve({
 			port: this.port,
-			fetch: this.fetch
+			fetch: this.fetch,
+			websocket: {
+				message: webSocketServer.message
+			},
+			development: true
 		});
+
+		console.log('Server ON');
 	}
 }
 
@@ -51,7 +67,7 @@ async function handleRequest(
 	if (path[0] === 'api') {
 		return await apiHandler(path, request, dbClient);
 	} else {
-		return staticHandler(path, files);
+		return await staticHandler(path, files);
 	}
 }
 

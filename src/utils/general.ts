@@ -51,12 +51,12 @@ export function parseToken(token: string): Result<
 		username: string;
 		password: string;
 	},
-	0
+	string
 > {
 	const values = token.split(':');
 
 	if (values.length < 2) {
-		return Error(0);
+		return Error('Invalid token');
 	}
 
 	return Ok({
