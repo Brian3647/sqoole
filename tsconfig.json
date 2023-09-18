@@ -23,7 +23,8 @@
 			"$server*": ["./src/server.ts"],
 			"$ws/*": ["./src/ws/*"],
 			"$chats/*": ["./src/api/chats/*"],
-			"$users/*": ["./src/api/users/*"]
+			"$users/*": ["./src/api/users/*"],
+			"$src/*": ["./src/*"]
 		}
 	},
 
