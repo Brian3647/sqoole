@@ -1,32 +1,19 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getRequestJSON, parseToken } from '$utils/general';
+import { getRequestJSON, parseToken } from '$utils';
 import { ChatDeletionRequest } from '$users/types';
 
 export async function deleteChat(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<ChatDeletionRequest, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
-
-	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
-	}
-
-	const options = requestBody.unwrap();
+): Promise<Response> {
+	const options = await getRequestJSON<ChatDeletionRequest>(request);
 
 	if (!options || !options.id || !options.token) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	}
 
-	const userData = parseToken(options.token).unwrapOr({
-		username: '',
-		password: ''
-	});
+	const userData = parseToken(options.token);
 
 	const { data: user } = await dbClient
 		.from('users')
@@ -35,9 +22,7 @@ export async function deleteChat(
 		.eq('password', userData.password);
 
 	if (!user?.length) {
-		return Error(
-			new ServerError('User', 'Invalid token: user not found.', 400)
-		);
+		throw UserError('Invalid token: user not found.');
 	}
 
 	const { data: requestedChat } = await dbClient
@@ -46,18 +31,12 @@ export async function deleteChat(
 		.eq('id', options.id);
 
 	if (!requestedChat?.length) {
-		return Error(new ServerError('User', 'Requested chat not found.', 400));
+		throw UserError('Requested chat not found.');
 	} else if (requestedChat[0].owner !== user[0].id) {
-		return Error(
-			new ServerError(
-				'User',
-				'Invalid token: user is not the owner of the chat.',
-				400
-			)
-		);
+		throw UserError('Invalid token: user is not the owner of the chat.');
 	}
 
 	await dbClient.from('chats').delete().eq('id', options.id);
 
-	return Ok(new Response('OK.'));
+	return new Response(JSON.stringify({}));
 }

@@ -1,32 +1,25 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { debug, getRequestJSON, parseToken } from '$utils/general';
+import { debug, getRequestJSON, parseToken } from '$utils';
 import { ChatDeletionRequest } from '$users/types';
 
 export async function joinChat(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<ChatDeletionRequest, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
+): Promise<Response> {
+	const requestBody = await getRequestJSON<ChatDeletionRequest>(request);
 
 	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
+		throw requestBody.unwrapError();
 	}
 
 	const options = requestBody.unwrap();
 
 	if (!options || !options.id || !options.token) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	}
 
-	const userData = parseToken(options.token).unwrapOr({
-		username: '',
-		password: ''
-	});
+	const userData = parseToken(options.token);
 
 	const { data: user } = await dbClient
 		.from('users')
@@ -35,9 +28,7 @@ export async function joinChat(
 		.eq('password', userData.password);
 
 	if (!user?.length) {
-		return Error(
-			new ServerError('User', 'Invalid token: user not found.', 400)
-		);
+		throw UserError('Invalid token: user not found.');
 	}
 
 	const { data: chat } = await dbClient
@@ -46,11 +37,9 @@ export async function joinChat(
 		.eq('id', options.id);
 
 	if (!chat?.length) {
-		return Error(new ServerError('User', 'Requested chat not found.', 400));
+		throw UserError('Requested chat not found.');
 	} else if (chat[0].users.includes(user[0].id)) {
-		return Error(
-			new ServerError('User', 'User is already in specified chat.', 400)
-		);
+		throw UserError('User is already in specified chat.');
 	}
 
 	await dbClient
@@ -58,5 +47,5 @@ export async function joinChat(
 		.update({ users: [...chat[0].users, user[0].id] })
 		.eq('id', options.id);
 
-	return Ok(new Response('OK.'));
+	return new Response(JSON.stringify({}));
 }

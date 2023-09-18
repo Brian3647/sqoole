@@ -1,7 +1,6 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getRequestJSON, parseToken } from '$utils/general';
+import { getRequestJSON, parseToken } from '$utils';
 import { ChatMessagesRequest } from '$users/types';
 
 const messagesPerPage = 20;
@@ -9,26 +8,14 @@ const messagesPerPage = 20;
 export async function getMessages(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<ChatMessagesRequest, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
-
-	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
-	}
-
-	const options = requestBody.unwrap();
+): Promise<Response> {
+	const options = await getRequestJSON<ChatMessagesRequest>(request);
 
 	if (!options || !options.id || !options.token) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	}
 
-	const userData = parseToken(options.token).unwrapOr({
-		username: '',
-		password: ''
-	});
+	const userData = parseToken(options.token);
 
 	const { data: possibleUser } = await dbClient
 		.from('users')
@@ -37,9 +24,7 @@ export async function getMessages(
 		.eq('password', userData.password);
 
 	if (!possibleUser?.length) {
-		return Error(
-			new ServerError('User', 'Invalid token: user not found.', 400)
-		);
+		throw UserError('Invalid token: user not found.');
 	}
 
 	const { data: chat } = await dbClient
@@ -48,9 +33,9 @@ export async function getMessages(
 		.eq('id', options.id);
 
 	if (!chat?.length) {
-		return Error(new ServerError('User', 'Chat not found.', 400));
+		throw UserError('Chat not found.');
 	} else if (!chat[0].users.includes(possibleUser[0].id)) {
-		return Error(new ServerError('User', 'User not part of that chat.', 400));
+		throw UserError('User not part of that chat.');
 	}
 
 	const rangeStart = messagesPerPage * (options.page || 0);
@@ -62,5 +47,5 @@ export async function getMessages(
 
 	const messages = (unPreparedMessages && unPreparedMessages[0].messages) || [];
 
-	return Ok(new Response(JSON.stringify(messages)));
+	return new Response(JSON.stringify(messages));
 }

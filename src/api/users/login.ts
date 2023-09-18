@@ -1,26 +1,16 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
-import { createToken, debug, getRequestJSON } from '$utils/general';
+import { createToken, getRequestJSON } from '$utils';
 
 export async function login(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<User, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
-
-	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
-	}
-
-	const options = requestBody.unwrap();
+): Promise<Response> {
+	const options = await getRequestJSON<User>(request);
 
 	if (!options || !options.username || !options.password) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	}
 
 	const { data: users } = await dbClient
@@ -29,13 +19,7 @@ export async function login(
 		.eq('username', options.username);
 
 	if (!users?.length) {
-		return Error(
-			new ServerError(
-				'User',
-				`No user found with username ${options.username}`,
-				400
-			)
-		);
+		throw UserError(`No user found with username ${options.username}`);
 	}
 
 	const user = users[0];
@@ -46,12 +30,12 @@ export async function login(
 	);
 
 	if (!validPassword) {
-		return Error(new ServerError('User', 'Invalid password provided.', 400));
+		throw UserError('Invalid password provided.');
 	}
 
 	const returnObject = JSON.stringify({
 		token: createToken(user.username, user.password)
 	});
 
-	return Ok(new Response(returnObject));
+	return new Response(returnObject);
 }

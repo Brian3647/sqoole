@@ -1,6 +1,6 @@
-import { ServerError } from '$server';
-import { Error, Result } from '$utils/result';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
+
 import { createChat } from './new';
 import { getMessages } from './getMessages';
 import { getInfo } from './getInfo';
@@ -14,7 +14,7 @@ export default async function chatsApiHandler(
 	path: string[],
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
+): Promise<Response> {
 	switch (path[2]) {
 		case 'new':
 			return createChat(request, dbClient);
@@ -33,6 +33,6 @@ export default async function chatsApiHandler(
 		case 'give_owner':
 			return changeOwner(request, dbClient);
 		default:
-			return Error(new ServerError('User', 'Unexistent API route', 404));
+			throw UserError('Unexistent API route', 404);
 	}
 }

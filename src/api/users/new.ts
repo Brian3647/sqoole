@@ -1,41 +1,25 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { ServerError, UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
-import { createB64ID, createToken, getRequestJSON } from '$utils/general';
+import { createB64ID, createToken, getRequestJSON } from '$utils';
 
 export async function createUser(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<User, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
-
-	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
-	}
-
-	const options = requestBody.unwrap();
+): Promise<Response> {
+	const options = await getRequestJSON<User>(request);
 
 	if (!options || !options.username || !options.password) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	}
 
 	if (options.password.length > 80 || options.username.length > 80) {
-		return Error(
-			new ServerError(
-				'User',
-				'Username or password too long. Max size is 80.',
-				400
-			)
-		);
+		throw UserError('Username or password too long. Max size is 80.');
 	}
 
 	const password = await Bun.password.hash(options.password);
 	let id;
-	let possibleUser: Array<User | 0> = [0];
+	let possibleUser = [''];
 
 	while (possibleUser.length !== 0) {
 		const { data: possibleUserTry } = await dbClient
@@ -58,8 +42,10 @@ export async function createUser(
 
 	if (error) {
 		console.error(error);
-		return Error(
-			new ServerError('Database', 'Internal database error creating user.', 500)
+		throw new ServerError(
+			'Database',
+			'Internal database error creating user.',
+			500
 		);
 	}
 
@@ -67,5 +53,5 @@ export async function createUser(
 		token: createToken(newUser.username, newUser.password)
 	});
 
-	return Ok(new Response(returnObject));
+	return new Response(returnObject);
 }

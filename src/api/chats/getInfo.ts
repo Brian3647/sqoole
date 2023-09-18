@@ -1,32 +1,19 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getRequestJSON, parseToken } from '$utils/general';
+import { getRequestJSON, parseToken } from '$utils';
 import { ChatInfoRequest } from '$users/types';
 
 export async function getInfo(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<ChatInfoRequest, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
-
-	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
-	}
-
-	const options = requestBody.unwrap();
+): Promise<Response> {
+	const options = await getRequestJSON<ChatInfoRequest>(request);
 
 	if (!options || !options.id || !options.token) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	}
 
-	const userData = parseToken(options.token).unwrapOr({
-		username: '',
-		password: ''
-	});
+	const userData = parseToken(options.token);
 
 	const { data: user } = await dbClient
 		.from('users')
@@ -35,9 +22,7 @@ export async function getInfo(
 		.eq('password', userData.password);
 
 	if (!user?.length) {
-		return Error(
-			new ServerError('User', 'Invalid token: user not found.', 400)
-		);
+		throw UserError('Invalid token: user not found.');
 	}
 
 	const { data: chatUsers } = await dbClient
@@ -46,9 +31,9 @@ export async function getInfo(
 		.eq('id', options.id);
 
 	if (!chatUsers?.length) {
-		return Error(new ServerError('User', 'Chat not found.', 400));
+		throw UserError('Chat not found.');
 	} else if (!chatUsers[0].users.includes(user[0].id)) {
-		return Error(new ServerError('User', 'User not part of that chat.', 400));
+		throw UserError('User not part of that chat.');
 	}
 
 	const { data: chatName } = await dbClient
@@ -61,5 +46,5 @@ export async function getInfo(
 		name: chatName![0].name
 	};
 
-	return Ok(new Response(JSON.stringify(response)));
+	return new Response(JSON.stringify(response));
 }

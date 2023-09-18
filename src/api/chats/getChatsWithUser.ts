@@ -1,32 +1,19 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getRequestJSON, parseToken } from '$utils/general';
+import { getRequestJSON, parseToken } from '$utils';
 import { AuthorisedRequest } from '$users/types';
 
 export async function getChatsWithUser(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<AuthorisedRequest, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
-
-	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
-	}
-
-	const options = requestBody.unwrap();
+): Promise<Response> {
+	const options = await getRequestJSON<AuthorisedRequest>(request);
 
 	if (!options || !options.token) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	}
 
-	const userData = parseToken(options.token).unwrapOr({
-		username: '',
-		password: ''
-	});
+	const userData = parseToken(options.token);
 
 	const { data: possibleUser } = await dbClient
 		.from('users')
@@ -35,11 +22,9 @@ export async function getChatsWithUser(
 		.eq('password', userData.password);
 
 	if (!possibleUser?.length) {
-		return Error(
-			new ServerError('User', 'Invalid token: user not found.', 400)
-		);
+		throw UserError('Invalid token: user not found.');
 	}
 
 	const chats = possibleUser[0].in_chats;
-	return Ok(new Response(JSON.stringify(chats)));
+	return new Response(JSON.stringify(chats));
 }

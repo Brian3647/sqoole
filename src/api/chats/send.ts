@@ -1,33 +1,20 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getRequestJSON, parseToken } from '$utils/general';
+import { getRequestJSON, parseToken } from '$utils';
 import { MessageSendRequest } from '$users/types';
 import { Message } from './types';
 
 export async function sendMessage(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<MessageSendRequest, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
-
-	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
-	}
-
-	const options = requestBody.unwrap();
+): Promise<Response> {
+	const options = await getRequestJSON<MessageSendRequest>(request);
 
 	if (!options || !options.token || !options.text || !options.channel) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	}
 
-	const userData = parseToken(options.token).unwrapOr({
-		username: '',
-		password: ''
-	});
+	const userData = parseToken(options.token);
 
 	const { data: user } = await dbClient
 		.from('users')
@@ -36,9 +23,7 @@ export async function sendMessage(
 		.eq('password', userData.password);
 
 	if (!user?.length) {
-		return Error(
-			new ServerError('User', 'Invalid token: user not found.', 400)
-		);
+		throw UserError('Invalid token: user not found.');
 	}
 
 	const { data: chat } = await dbClient
@@ -47,11 +32,9 @@ export async function sendMessage(
 		.eq('id', options.channel);
 
 	if (!chat?.length) {
-		return Error(new ServerError('User', 'Requested chat not found.', 400));
+		throw UserError('Requested chat not found.');
 	} else if (!chat[0].users.includes(user[0].id)) {
-		return Error(
-			new ServerError('User', 'User is not in specified chat.', 400)
-		);
+		throw UserError('User is not in specified chat.');
 	}
 
 	const newMessage: Message = {
@@ -65,5 +48,5 @@ export async function sendMessage(
 		.update({ messages: [...chat[0].messages, newMessage] })
 		.eq('id', options.channel);
 
-	return Ok(new Response(JSON.stringify(newMessage)));
+	return new Response(JSON.stringify(newMessage));
 }

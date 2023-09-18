@@ -1,35 +1,22 @@
-import { ServerError } from '$server';
-import { Error, Ok, Result } from '$utils/result';
+import { ServerError, UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Chat } from './types';
-import { createB64ID, getRequestJSON, parseToken } from '$utils/general';
+import { createB64ID, getRequestJSON, parseToken } from '$utils';
 import { ChatCreationRequest } from '$users/types';
 
 export async function createChat(
 	request: Request,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
-	const requestBody = await getRequestJSON<ChatCreationRequest, ServerError>(
-		request,
-		new ServerError('User', 'Invalid JSON object.', 400)
-	);
-
-	if (requestBody.isError()) {
-		return Error(requestBody.unwrapError());
-	}
-
-	const options = requestBody.unwrap();
+): Promise<Response> {
+	const options = await getRequestJSON<ChatCreationRequest>(request);
 
 	if (!options || !options.name || !options.token) {
-		return Error(new ServerError('User', 'Missing fields.', 400));
+		throw UserError('Missing fields.');
 	} else if (options.name.length > 80) {
-		return Error(new ServerError('User', 'Chat name too long.', 400));
+		throw UserError('Chat name too long.');
 	}
 
-	const userData = parseToken(options.token).unwrapOr({
-		username: '',
-		password: ''
-	});
+	const userData = parseToken(options.token);
 
 	const { data: user } = await dbClient
 		.from('users')
@@ -38,12 +25,10 @@ export async function createChat(
 		.eq('password', userData.password);
 
 	if (!user || (user[0].in_chats || []).length >= 50) {
-		return Error(
-			new ServerError(
-				'User',
-				'User is in too many chats or has not been found.',
-				400
-			)
+		throw new ServerError(
+			'User',
+			'User is in too many chats or has not been found.',
+			400
 		);
 	}
 
@@ -80,8 +65,10 @@ export async function createChat(
 
 	if (error) {
 		console.error(error);
-		return Error(
-			new ServerError('Database', 'Internal database error creating chat.', 500)
+		throw new ServerError(
+			'Database',
+			'Internal database error creating chat.',
+			500
 		);
 	}
 
@@ -90,5 +77,5 @@ export async function createChat(
 		.update({ in_chats: [...user[0].in_chats, newChat.id] })
 		.eq('id', user[0].id);
 
-	return Ok(new Response('OK.'));
+	return new Response(JSON.stringify({}));
 }

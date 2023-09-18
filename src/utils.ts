@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { Result, Error, Ok } from './result';
+import { ServerError, UserError } from './server';
 
 export function debug<T>(value: T): T {
 	console.log(value);
@@ -21,46 +21,41 @@ export function createB64ID(length: number = 8): string {
 	return Buffer.from(randomNumber, 'hex').toString('base64').slice(0, -1);
 }
 
-export async function getRequestJSON<T, E>(
-	request: Request,
-	error: E
-): Promise<Result<T, E>> {
+export async function getRequestJSON<T>(request: Request): Promise<T> {
 	const requestBody = await request.text();
 
 	if (!requestBody) {
-		return Error(error);
+		throw UserError('Invalid JSON object.');
 	}
 
 	let options: T;
 
 	try {
 		options = JSON.parse(requestBody);
-	} catch (optionsError) {
-		return Error(error);
+	} catch {
+		throw UserError('Invalid JSON object.');
 	}
 
-	return Ok(options);
+	return options;
 }
 
 export function createToken(username: string, hashedPassword: string) {
 	return `${username}:${hashedPassword}`;
 }
 
-export function parseToken(token: string): Result<
-	{
-		username: string;
-		password: string;
-	},
-	string
-> {
-	const values = token.split(':');
+export function parseToken(token: string): {
+	username: string;
+	password: string;
+} {
+	// .toString() js to make sure. Weird errors happen without it
+	const values = token.toString().split(':');
 
 	if (values.length < 2) {
-		return Error('Invalid token');
+		throw UserError('Invalid token.');
 	}
 
-	return Ok({
+	return {
 		username: values[0],
 		password: values.slice(1).join(':')
-	});
+	};
 }

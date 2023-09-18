@@ -1,21 +1,20 @@
-import { Result } from '$utils/result.ts';
 import staticHandler from './static.ts';
 import apiHandler from './api/api.ts';
 import path from 'node:path';
 import { SupabaseClient } from '@supabase/supabase-js';
 import WebSocketServer from './ws/server.ts';
 import { Server as BunServer } from 'bun';
-import { debug } from '$utils/general.ts';
+import { debug } from '$utils';
 
 const files = path.join(import.meta.dir, '..', 'web', 'dist');
 let databaseClient: SupabaseClient;
 let webSocketServer: WebSocketServer;
 
 export default class Server {
-	port!: number;
+	port!: number | string;
 	dbClient!: SupabaseClient;
 
-	constructor(port: number, dbClient: SupabaseClient) {
+	constructor(port: number | string, dbClient: SupabaseClient) {
 		this.port = port;
 		databaseClient = dbClient;
 		webSocketServer = new WebSocketServer(dbClient);
@@ -25,25 +24,27 @@ export default class Server {
 		request: Request,
 		server: BunServer
 	): Promise<Response | undefined> {
-		if (debug(webSocketServer.upgrade(request, server)?.ok)) return;
+		if (webSocketServer.upgrade(request, server)?.ok) return;
 
-		const server_response = await handleRequest(request, files, databaseClient);
-		if (server_response.isOk()) return server_response.value as Response;
+		try {
+			return handleRequest(request, files, databaseClient);
+		} catch (error: any) {
+			if (typeof error === 'string') {
+				error = UserError(error);
+			} else if (!error['intoResponse']) {
+				return new ServerError(
+					'Unknown',
+					'Unknown server error: ' + JSON.stringify(error),
+					500
+				).intoResponse();
+			}
 
-		let error = server_response.value as ServerError;
-		if (error === undefined) {
-			error = new ServerError(
-				'Unknown',
-				'Unknown server error, probably due to lack of error handling.',
-				500
-			);
+			error.log(request.url);
+			return error.intoResponse();
 		}
-
-		error.log(request.url);
-		return error.intoResponse();
 	}
 
-	public start() {
+	public async start() {
 		Bun.serve({
 			port: this.port,
 			fetch: this.fetch,
@@ -53,7 +54,7 @@ export default class Server {
 			development: true
 		});
 
-		console.log('Server ON');
+		return console.log('Server ON');
 	}
 }
 
@@ -61,7 +62,7 @@ async function handleRequest(
 	request: Request,
 	files: string,
 	dbClient: SupabaseClient
-): Promise<Result<Response, ServerError>> {
+): Promise<Response> {
 	const path = request.url.split('/').slice(3);
 
 	if (path[0] === 'api') {
@@ -87,11 +88,14 @@ export class ServerError {
 	}
 
 	public intoResponse(): Response {
-		return new Response(
-			`[${this.errorType.toUpperCase()} ERROR] status: ${this.status}\n` +
-				`WITH ERROR MESSAGE: '${this.message}'`,
-			{ status: this.status }
-		);
+		const response = {
+			error: true,
+			type: this.errorType,
+			message: this.message,
+			status: this.status
+		};
+
+		return new Response(JSON.stringify(response), { status: this.status });
 	}
 
 	public log(route?: string) {
@@ -107,3 +111,6 @@ export class ServerError {
 		);
 	}
 }
+
+export const UserError = (body: string, status: number = 400) =>
+	new ServerError('User', body, status);

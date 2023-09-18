@@ -19,7 +19,7 @@
 			"bun-types" // add Bun global
 		],
 		"paths": {
-			"$utils/*": ["./src/utils/*"],
+			"$utils": ["./src/utils.ts"],
 			"$server*": ["./src/server.ts"],
 			"$ws/*": ["./src/ws/*"],
 			"$chats/*": ["./src/api/chats/*"],

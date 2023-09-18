@@ -1,7 +1,6 @@
 import { Server as BunServer, ServerWebSocket } from 'bun';
 import handleMessage from './message';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { debug } from '$utils/general';
 
 export type WebSocketData = {
 	createdAt: number;
