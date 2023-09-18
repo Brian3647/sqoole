@@ -1,8 +1,8 @@
 # **API GUIDE**
 
-- [screenshot (recommended for mobile)](#screenshot-recommended-if-youre-on-your-phone)
+- [screenshot (recommended for mobile)](#screenshot)
 
-```ts
+```c
 /api
 	/users
 		/login { username: string, password: string }
@@ -15,7 +15,7 @@
 		-> { token: string }
 
 		/delete { token: string }
-		-> { }
+		-> {}
 
 	/chats
 		/new { token: string, name: string }
