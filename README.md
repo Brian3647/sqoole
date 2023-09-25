@@ -17,6 +17,10 @@
 
 </div>
 
+## **What is sqoole?**
+
+Sqoole is a minimalist, open-source chat app where chats get automatically deleted after 1/7/30 days. This is specially useful for small conversations that are not meant to be there forever, giving full security and trust to the users.
+
 ## **API**
 
 Refer to [API_ROUTES.md](./API_ROUTES.md) for a guide on how to use the API.
@@ -24,6 +28,10 @@ Refer to [API_ROUTES.md](./API_ROUTES.md) for a guide on how to use the API.
 ## **Contributing**
 
 Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for all the information on how to help the project.
+
+## **Project Status**
+
+I gave up for a while since websockets AND supabase both are making it difficult to work in, so I'll switch to firebase for an easier developement and continue the activity.
 
 <!-- Links -->
 

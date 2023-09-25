@@ -4,6 +4,7 @@ export interface Chat {
 	// Users are listed by ID.
 	users: string[];
 	created_at?: string;
+	deleted_at?: string;
 	name: string;
 	owner: string;
 }
