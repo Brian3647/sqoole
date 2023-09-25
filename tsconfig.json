@@ -22,6 +22,7 @@
 			"$utils": ["./src/utils.ts"],
 			"$server*": ["./src/server.ts"],
 			"$ws/*": ["./src/ws/*"],
+			"$api/*": ["./src/api/*"],
 			"$chats/*": ["./src/api/chats/*"],
 			"$users/*": ["./src/api/users/*"],
 			"$src/*": ["./src/*"]
