@@ -1,12 +1,16 @@
 # **API GUIDE**
 
-- [screenshot (recommended for mobile)](#screenshot)
-
 ```c
 /api
 	/users
 		/login { username: string, password: string }
-		-> { token: string }
+		-> { token: string, username: string,
+			created_at: string, updated_at: string | null,
+			in_chats: string[] }
+
+		/token_login { token: string }
+		-> { username: string, created_at: string,
+			updated_at: string | null, in_chats: string[] }
 
 		/change_username { new_username: string, token: string }
 		-> { old_name: string, new_name: string, new_token: string }
@@ -45,7 +49,3 @@
 	/ws
 		// TODO. WebSockets aren't currently working.
 ```
-
-### Screenshot
-
-![screenshot.png](/.github/assets/api_routes_screenshot.png)
