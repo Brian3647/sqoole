@@ -1,17 +1,14 @@
 import { ServerError, UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
-import { createB64ID, createToken, getRequestJSON } from '$utils';
+import { createB64ID, createToken, getOptions } from '$utils';
 
 export async function createUser(
 	request: Request,
-	dbClient: SupabaseClient
+	dbClient: SupabaseClient,
+	ip: string
 ): Promise<Response> {
-	const options = await getRequestJSON<User>(request);
-
-	if (!options || !options.username || !options.password) {
-		throw UserError('Missing fields.');
-	}
+	const options = await getOptions<User>(request, ['username', 'password']);
 
 	if (options.password.length > 80 || options.username.length > 80) {
 		throw UserError('Username or password too long. Max size is 80.');
@@ -31,11 +28,12 @@ export async function createUser(
 		possibleUser = possibleUserTry || [];
 	}
 
-	const newUser: User = {
+	const newUser: Partial<User> = {
 		id: id!,
 		password: password.toString(),
 		username: options.username,
-		in_chats: []
+		in_chats: [],
+		ips: [ip]
 	};
 
 	const { error } = await dbClient.from('users').insert([newUser]).select();
@@ -50,7 +48,7 @@ export async function createUser(
 	}
 
 	const returnObject = JSON.stringify({
-		token: createToken(newUser.username, newUser.password)
+		token: createToken(newUser.username!, newUser.password!)
 	});
 
 	return new Response(returnObject);

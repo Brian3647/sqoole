@@ -1,30 +1,23 @@
 import { ServerError, UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Chat } from './types';
-import { createB64ID, getRequestJSON, parseToken } from '$utils';
+import { createB64ID, getOptions, getUser } from '$utils';
 import { ChatCreationRequest } from '$users/types';
 
 export async function createChat(
-	request: Request,
+	req: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const options = await getRequestJSON<ChatCreationRequest>(request);
+	const fields = ['name', 'token'];
+	const options = await getOptions<ChatCreationRequest>(req, fields);
 
-	if (!options || !options.name || !options.token) {
-		throw UserError('Missing fields.');
-	} else if (options.name.length > 80) {
+	if (options.name.length > 80) {
 		throw UserError('Chat name too long.');
 	}
 
-	const userData = parseToken(options.token);
+	const user = await getUser(dbClient, options.token);
 
-	const { data: user } = await dbClient
-		.from('users')
-		.select('*')
-		.eq('username', userData.username)
-		.eq('password', userData.password);
-
-	if (!user || (user[0].in_chats || []).length >= 50) {
+	if (!user || (user.in_chats || []).length >= 50) {
 		throw new ServerError(
 			'User',
 			'User is in too many chats or has not been found.',
@@ -33,9 +26,7 @@ export async function createChat(
 	}
 
 	let id: string = '';
-	let possibleChat: Array<Chat> = [
-		{ id: '', messages: [], users: [], name: '', owner: '' }
-	];
+	let possibleChat = [{ hello: ':)' }];
 
 	while (possibleChat.length !== 0) {
 		const { data: possibleChatTry } = await dbClient
@@ -49,16 +40,16 @@ export async function createChat(
 
 	const newChat: Chat = {
 		id: id!,
-		users: [user[0].id],
+		users: [user.id],
 		name: options.name,
 		messages: [
 			{
 				author: 'system',
-				text: `~> ${user[0].username} created #${options.name}! (id: ${id!})`,
+				text: `~> ${user.username} created #${options.name}! (id: ${id!})`,
 				created_at: Date.now()
 			}
 		],
-		owner: user[0].id
+		owner: user.id
 	};
 
 	const { error } = await dbClient.from('chats').insert([newChat]).select();
@@ -74,8 +65,8 @@ export async function createChat(
 
 	await dbClient
 		.from('users')
-		.update({ in_chats: [...user[0].in_chats, newChat.id] })
-		.eq('id', user[0].id);
+		.update({ in_chats: [...user.in_chats, newChat.id] })
+		.eq('id', user.id);
 
-	return new Response(JSON.stringify({}));
+	return new Response('{}');
 }

@@ -1,35 +1,16 @@
-import { ServerError, UserError } from '$server';
+import { ServerError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { NameChangeRequest, User } from './types';
-import { createToken, debug, getRequestJSON, parseToken } from '$utils';
+import { NameChangeRequest } from './types';
+import { createToken, getOptions, getUser } from '$utils';
 
 export async function usernameChange(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const options = await getRequestJSON<NameChangeRequest>(request);
+	const fields = ['new_username', 'token'];
+	const options = await getOptions<NameChangeRequest>(request, fields);
 
-	if (!options || !options.new_username || !options.token) {
-		throw UserError('Missing fields.');
-	}
-
-	const userData = parseToken(options.token);
-
-	const { data: usersFound } = await dbClient
-		.from('users')
-		.select('*')
-		.eq('username', userData.username)
-		.eq('password', userData.password);
-
-	if (!usersFound?.length) {
-		throw new ServerError(
-			'User',
-			'Invalid username or password in token.',
-			400
-		);
-	}
-
-	const user: User = usersFound[0];
+	const user = await getUser(dbClient, options.token);
 
 	if (user.updated_at !== user.created_at && user.updated_at !== null) {
 		const lastUpdated = Date.parse(user.updated_at || user.created_at!);
@@ -45,18 +26,10 @@ export async function usernameChange(
 		}
 	}
 
-	const { error } = await dbClient
+	await dbClient
 		.from('users')
 		.update({ username: options.new_username })
 		.eq('id', user.id);
-
-	if (error) {
-		throw new ServerError(
-			'Database',
-			'Internal server error updating the database.',
-			500
-		);
-	}
 
 	return new Response(
 		JSON.stringify({

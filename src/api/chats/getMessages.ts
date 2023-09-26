@@ -1,6 +1,6 @@
 import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getRequestJSON, parseToken } from '$utils';
+import { getOptions, getUser } from '$utils';
 import { ChatMessagesRequest } from '$users/types';
 
 const messagesPerPage = 20;
@@ -9,23 +9,9 @@ export async function getMessages(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const options = await getRequestJSON<ChatMessagesRequest>(request);
-
-	if (!options || !options.id || !options.token) {
-		throw UserError('Missing fields.');
-	}
-
-	const userData = parseToken(options.token);
-
-	const { data: possibleUser } = await dbClient
-		.from('users')
-		.select('*')
-		.eq('username', userData.username)
-		.eq('password', userData.password);
-
-	if (!possibleUser?.length) {
-		throw UserError('Invalid token: user not found.');
-	}
+	const fields = ['id', 'token'];
+	const options = await getOptions<ChatMessagesRequest>(request, fields);
+	const user = await getUser(dbClient, options.token);
 
 	const { data: chat } = await dbClient
 		.from('chats')
@@ -34,7 +20,7 @@ export async function getMessages(
 
 	if (!chat?.length) {
 		throw UserError('Chat not found.');
-	} else if (!chat[0].users.includes(possibleUser[0].id)) {
+	} else if (!chat[0].users.includes(user.id)) {
 		throw UserError('User not part of that chat.');
 	}
 

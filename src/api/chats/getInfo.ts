@@ -1,29 +1,14 @@
 import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getRequestJSON, parseToken } from '$utils';
+import { getOptions, getUser } from '$utils';
 import { ChatInfoRequest } from '$users/types';
 
 export async function getInfo(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const options = await getRequestJSON<ChatInfoRequest>(request);
-
-	if (!options || !options.id || !options.token) {
-		throw UserError('Missing fields.');
-	}
-
-	const userData = parseToken(options.token);
-
-	const { data: user } = await dbClient
-		.from('users')
-		.select('*')
-		.eq('username', userData.username)
-		.eq('password', userData.password);
-
-	if (!user?.length) {
-		throw UserError('Invalid token: user not found.');
-	}
+	const options = await getOptions<ChatInfoRequest>(request, ['id', 'token']);
+	const user = await getUser(dbClient, options.token);
 
 	const { data: chatUsers } = await dbClient
 		.from('chats')
@@ -32,7 +17,7 @@ export async function getInfo(
 
 	if (!chatUsers?.length) {
 		throw UserError('Chat not found.');
-	} else if (!chatUsers[0].users.includes(user[0].id)) {
+	} else if (!chatUsers[0].users.includes(user.id)) {
 		throw UserError('User not part of that chat.');
 	}
 

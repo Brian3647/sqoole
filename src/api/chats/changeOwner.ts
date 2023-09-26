@@ -1,29 +1,15 @@
 import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getRequestJSON, parseToken } from '$utils';
+import { getOptions, getUser } from '$utils';
 import { ChangeOwnerRequest } from '$users/types';
 
 export async function changeOwner(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const options = await getRequestJSON<ChangeOwnerRequest>(request);
-
-	if (!options || !options.id || !options.token || !options.new_owner) {
-		throw UserError('Missing fields.');
-	}
-
-	const userData = parseToken(options.token);
-
-	const { data: user } = await dbClient
-		.from('users')
-		.select('*')
-		.eq('username', userData.username)
-		.eq('password', userData.password);
-
-	if (!user?.length) {
-		throw UserError('Invalid token: user not found.');
-	}
+	const fields = ['id', 'token', 'new_owner'];
+	const options = await getOptions<ChangeOwnerRequest>(request, fields);
+	const user = await getUser(dbClient, options.token);
 
 	const { data: requestedChat } = await dbClient
 		.from('chats')
@@ -32,7 +18,7 @@ export async function changeOwner(
 
 	if (!requestedChat?.length) {
 		throw UserError('Requested chat not found.');
-	} else if (requestedChat[0].owner !== user[0].id) {
+	} else if (requestedChat[0].owner !== user.id) {
 		throw UserError('Invalid token: user is not the owner of the chat.');
 	}
 
@@ -57,5 +43,5 @@ export async function changeOwner(
 		.update({ owner: options.new_owner })
 		.eq('id', options.id);
 
-	return new Response(JSON.stringify({}));
+	return new Response('{}');
 }

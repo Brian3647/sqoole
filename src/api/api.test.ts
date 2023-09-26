@@ -52,6 +52,14 @@ describe('Users', () => {
 
 		expect(res.error).toBe(undefined);
 		expect(res2.error).toBe(undefined);
+
+		expect(res.token).toBe(firstUserToken);
+		expect(res2.token).toBe(secondUserToken);
+	});
+
+	test('Token Login', async () => {
+		const res = await api('/users/token_login', { token: firstUserToken });
+		expect(res.error).toBe(undefined);
 	});
 
 	test('Name change', async () => {

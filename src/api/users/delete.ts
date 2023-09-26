@@ -1,43 +1,15 @@
-import { ServerError, UserError } from '$server';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { AuthorisedRequest, User } from './types';
-import { getRequestJSON, parseToken } from '$utils';
+import { AuthorisedRequest } from './types';
+import { getOptions, getUser } from '$utils';
 
 export async function deleteUser(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const options = await getRequestJSON<AuthorisedRequest>(request);
+	const options = await getOptions<AuthorisedRequest>(request);
+	const user = await getUser(dbClient, options.token);
+	await dbClient.from('users').delete().eq('id', user.id);
 
-	if (!options || !options.token) {
-		throw UserError('Missing fields.');
-	}
-
-	const userData = parseToken(options.token);
-
-	const { data: user } = await dbClient
-		.from('users')
-		.select('*')
-		.eq('username', userData.username)
-		.eq('password', userData.password);
-
-	if (!user?.length) {
-		throw new ServerError(
-			'User',
-			'Invalid username or password in token.',
-			400
-		);
-	}
-
-	const { error } = await dbClient.from('users').delete().eq('id', user[0].id);
-
-	if (error) {
-		throw new ServerError(
-			'Database',
-			'Internal server error updating the database.',
-			500
-		);
-	}
-
-	return new Response(JSON.stringify({}));
+	return new Response('{}');
 }

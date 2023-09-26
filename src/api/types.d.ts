@@ -6,5 +6,6 @@ export interface Paths {
 
 export type Route = (
 	request: Request,
-	databaseClient: SupabaseClient
+	databaseClient: SupabaseClient,
+	ip: string
 ) => Response | Promise<Response>;

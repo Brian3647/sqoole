@@ -4,20 +4,21 @@ import path from 'node:path';
 import { SupabaseClient } from '@supabase/supabase-js';
 import WebSocketServer from './ws/server.ts';
 import { Server as BunServer } from 'bun';
-import { debug } from '$utils';
+import { RateLimiter } from './rateLimiter.ts';
 
 const files = path.join(import.meta.dir, '..', 'web', 'dist');
 let databaseClient: SupabaseClient;
 let webSocketServer: WebSocketServer;
+let rateLimiter: RateLimiter;
 
 export default class Server {
 	port!: number | string;
-	dbClient!: SupabaseClient;
 
 	constructor(port: number | string, dbClient: SupabaseClient) {
 		this.port = port;
 		databaseClient = dbClient;
 		webSocketServer = new WebSocketServer(dbClient);
+		rateLimiter = new RateLimiter(10000, 30);
 	}
 
 	async fetch(
@@ -29,7 +30,10 @@ export default class Server {
 		try {
 			return handleRequest(request, files, databaseClient);
 		} catch (error: any) {
-			if (typeof error === 'string') {
+			if (
+				typeof error === 'string' &&
+				!error.toLowerCase().includes('internal')
+			) {
 				error = UserError(error);
 			} else if (!error['intoResponse']) {
 				return new ServerError(
@@ -66,7 +70,10 @@ async function handleRequest(
 	const path = request.url.split('/').slice(3);
 
 	if (path[0] === 'api') {
-		return await apiHandler(path, request, dbClient);
+		const [rateLimit, ip] = rateLimiter.check(request);
+		if (rateLimit) return rateLimit;
+
+		return await apiHandler(path, request, dbClient, ip);
 	} else {
 		return await staticHandler(path, files);
 	}

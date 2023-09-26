@@ -1,17 +1,14 @@
 import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
-import { createToken, getRequestJSON } from '$utils';
+import { createToken, getOptions } from '$utils';
 
 export async function login(
 	request: Request,
-	dbClient: SupabaseClient
+	dbClient: SupabaseClient,
+	ip: string
 ): Promise<Response> {
-	const options = await getRequestJSON<User>(request);
-
-	if (!options || !options.username || !options.password) {
-		throw UserError('Missing fields.');
-	}
+	const options = await getOptions<User>(request, ['username', 'password']);
 
 	const { data: users } = await dbClient
 		.from('users')
@@ -19,10 +16,10 @@ export async function login(
 		.eq('username', options.username);
 
 	if (!users?.length) {
-		throw UserError(`No user found with username ${options.username}`);
+		throw UserError('Wrong username or password.');
 	}
 
-	const user = users[0];
+	const user: User = users[0];
 
 	const validPassword = await Bun.password.verify(
 		options.password,
@@ -30,12 +27,22 @@ export async function login(
 	);
 
 	if (!validPassword) {
-		throw UserError('Invalid password provided.');
+		throw UserError('Wrong username or password.');
+	} else if (!user.ips.includes(ip)) {
+		await dbClient
+			.from('users')
+			.update({ ips: [...user.ips, ip] })
+			.eq('id', user.id);
 	}
 
-	const returnObject = JSON.stringify({
-		token: createToken(user.username, user.password)
-	});
-
-	return new Response(returnObject);
+	return new Response(
+		JSON.stringify({
+			token: createToken(user.username, user.password),
+			username: user.username,
+			id: user.id,
+			created_at: user.created_at,
+			updated_at: user.updated_at,
+			in_chats: user.in_chats
+		})
+	);
 }
