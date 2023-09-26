@@ -5,6 +5,8 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import WebSocketServer from './ws/server.ts';
 import { Server as BunServer } from 'bun';
 import { RateLimiter } from './rateLimiter.ts';
+import cleanDeletedChats from './api/chats/cleanDeletedChats.ts';
+import schedule from 'node-schedule';
 
 const files = path.join(import.meta.dir, '..', 'web', 'dist');
 let databaseClient: SupabaseClient;
@@ -49,6 +51,11 @@ export default class Server {
 	}
 
 	public async start() {
+		cleanDeletedChats(databaseClient);
+		schedule.scheduleJob('*/10 * * * *', () =>
+			cleanDeletedChats(databaseClient)
+		);
+
 		Bun.serve({
 			port: this.port,
 			fetch: this.fetch,

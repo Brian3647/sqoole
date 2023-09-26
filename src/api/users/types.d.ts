@@ -31,6 +31,7 @@ export type ChatDeletionRequest = ChatInfoRequest;
 
 export interface ChatCreationRequest extends AuthorisedRequest {
 	name: string;
+	days_until_deletion: number;
 }
 
 export interface MessageSendRequest extends AuthorisedRequest, Message {

@@ -21,6 +21,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.33.2",
     "crypto": "^1.0.1",
-    "forwarded-for": "^1.1.0"
+    "forwarded-for": "^1.1.0",
+    "node-schedule": "^2.1.1"
   }
 }

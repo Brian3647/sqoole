@@ -22,7 +22,7 @@
 		-> {}
 
 	/chats
-		/new { token: string, name: string, days_until_deletion: number =< 7 }
+		/new { token: string, name: string, days_until_deletion: 0 < number < 7 }
 		-> {}
 
 		/send { token: string, text: string, channel: string }

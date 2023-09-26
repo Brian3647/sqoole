@@ -8,8 +8,20 @@ export async function createChat(
 	req: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const fields = ['name', 'token'];
+	const fields = ['name', 'token', 'days_until_deletion'];
 	const options = await getOptions<ChatCreationRequest>(req, fields);
+
+	const daysUntilDeletion = Number(options.days_until_deletion);
+	if (
+		Number.isNaN(daysUntilDeletion) ||
+		!daysUntilDeletion ||
+		daysUntilDeletion <= 0 ||
+		daysUntilDeletion >= 7
+	) {
+		throw UserError(
+			'Invalid days_until_deletion field. Must be a number greater than 0 and smaller than 7.'
+		);
+	}
 
 	if (options.name.length > 80) {
 		throw UserError('Chat name too long.');
@@ -38,6 +50,10 @@ export async function createChat(
 		possibleChat = possibleChatTry || [];
 	}
 
+	let deletedAt: string | number = Date.now();
+	deletedAt = deletedAt + daysUntilDeletion * 86400000;
+	deletedAt = new Date(deletedAt).toISOString();
+
 	const newChat: Chat = {
 		id: id!,
 		users: [user.id],
@@ -49,7 +65,8 @@ export async function createChat(
 				created_at: Date.now()
 			}
 		],
-		owner: user.id
+		owner: user.id,
+		deleted_at: deletedAt
 	};
 
 	const { error } = await dbClient.from('chats').insert([newChat]).select();

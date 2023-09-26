@@ -49,6 +49,7 @@ create table
     users text[] null,
     name text null,
     owner text null,
+    deleted_at timestamp with time zone not null default (now() + '1 day'::interval),
     constraint chats_pkey primary key (id)
   ) tablespace pg_default;
 ```
