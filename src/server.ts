@@ -35,7 +35,7 @@ export default class Server {
 				!error.toLowerCase().includes('internal')
 			) {
 				error = UserError(error);
-			} else if (!error['intoResponse']) {
+			} else {
 				return new ServerError(
 					'Unknown',
 					'Unknown server error: ' + JSON.stringify(error),
