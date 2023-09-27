@@ -1,6 +1,6 @@
 # **Contributing :beers:**
 
-**Currently important _to-do_ list can be found [here](/TODO.md)**
+_Refer to [here](./PULL_REQUEST_TEMPLATE.md) and [here](./ISSUE_TEMPLATE/) for issue and PR templates respectively_
 
 This project is made using Bun (the javascript runtime & toolkit) along with TypeScript and supabase.
 
@@ -11,12 +11,16 @@ SUPABASE_KEY=(db's password)
 SUPABASE_URL=(your supabase project URL)
 ```
 
-Tables set-up can be found on [DATABASE_SETUP.md](./DATABASE_SETUP.md). Please note it might not be updated as of every commit (I forget things easily), so I recommend reading the api's code you want to touch just in case.
+Tables set-up can be found on [DATABASE_SETUP.md](./DATABASE_SETUP.md). Please note it might not be updated as of every commit, so I recommend reading the api's code you want to touch just in case.
 
-## **The front-end (pain)**
+## **Testing**
 
-It uses Nuxt. Sadly. Please work on it. I don't like building front-end.
+There is a full API test at [`./src/api/api.test.ts`](/src/api/api.test.ts), but websockets will need to be tested manually (specially using the front-end as soon as it's done).
+
+## **The front-end**
+
+Front-end uses NuxtJS and can be found at /web
 
 ## **Commit format**
 
-It's required to use [gitmoji](https://github.com/carloscuesta/gitmoji-cli) for your commits.
+It's recommended to use [gitmoji](https://github.com/carloscuesta/gitmoji-cli) for your commits.
