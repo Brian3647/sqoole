@@ -31,7 +31,7 @@ Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for all the information on ho
 
 ## **Project Status**
 
-I gave up for a while since websockets AND supabase both are making it difficult to work in. WIP again, but still hard.
+API is mostly finished (need to finish websockets & banning people from chats). Front-end isn't even started.
 
 <!-- Links -->
 
