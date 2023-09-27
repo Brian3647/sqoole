@@ -6,7 +6,7 @@ on:
     branches: ['main']
 
 jobs:
-  frontend:
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -14,6 +14,6 @@ jobs:
       - uses: oven-sh/setup-bun@v1
       - name: Run tests
         env:
-          SUPABASE_KEY: ${{ secrets.SUPABSE_KEY }}
-          SUPABASE_URL: ${{ secrets.SUPABSE_URL }}
-        run: bun install && bun test
+          SB_KEY: ${{ secrets.SUPABSE_KEY }}
+          SB_URL: ${{ secrets.SUPABSE_URL }}
+        run: SUPABASE_KEY=SB_KEY SUPABASE_URL=SB_URL bun install && bun test
