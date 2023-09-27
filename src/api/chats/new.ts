@@ -61,7 +61,7 @@ export async function createChat(
 		messages: [
 			{
 				author: 'system',
-				text: `~> ${user.username} created #${options.name}! (id: ${id!})`,
+				text: `~> ${user.username} created **${options.name}**! (id: ${id!})`,
 				created_at: Date.now()
 			}
 		],
@@ -85,5 +85,5 @@ export async function createChat(
 		.update({ in_chats: [...user.in_chats, newChat.id] })
 		.eq('id', user.id);
 
-	return new Response('{}');
+	return new Response(JSON.stringify({ id: newChat.id }));
 }

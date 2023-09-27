@@ -6,11 +6,12 @@
 		/login { username: string, password: string }
 		-> { token: string, username: string,
 			created_at: string, updated_at: string | null,
-			in_chats: string[] }
+			in_chats: string[], id: string }
 
 		/token_login { token: string }
 		-> { username: string, created_at: string,
-			updated_at: string | null, in_chats: string[] }
+			updated_at: string | null, in_chats: string[],
+			id: string }
 
 		/change_username { new_username: string, token: string }
 		-> { old_name: string, new_name: string, new_token: string }
@@ -23,7 +24,7 @@
 
 	/chats
 		/new { token: string, name: string, days_until_deletion: 0 < number < 7 }
-		-> {}
+		-> { id: string }
 
 		/send { token: string, text: string, channel: string }
 		-> { author: string, text: string, created_at: number }
@@ -35,7 +36,7 @@
 		-> {}
 
 		/get_information { token: string, id: string }
-		-> { name: string, users: string[] }
+		-> { name: string, users: string[], owner: string }
 
 		/get_messages { token: string, id: string, page: number }
 		-> string[]

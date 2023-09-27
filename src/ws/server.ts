@@ -1,6 +1,7 @@
 import { Server as BunServer, ServerWebSocket } from 'bun';
 import handleMessage from './message';
 import { SupabaseClient } from '@supabase/supabase-js';
+import { UserError } from '$server*';
 
 export type WebSocketData = {
 	createdAt: number;
@@ -8,29 +9,36 @@ export type WebSocketData = {
 	authToken: string;
 };
 
-export default class WebSocketServer {
-	dbClient!: SupabaseClient;
+let databaseClient: SupabaseClient;
 
+export default class WebSocketServer {
 	constructor(dbClient: SupabaseClient) {
-		this.dbClient = dbClient;
+		databaseClient = dbClient;
 	}
 
 	public upgrade(request: Request, server: BunServer): Response | undefined {
+		const urlParams = new URLSearchParams(request.url);
+
 		const success = server.upgrade(request, {
 			data: {
 				createdAt: Date.now(),
-				channelId: request.headers.get('X-ChannelId') || '',
-				authToken: request.headers.get('X-Token') || ''
+				channelId: urlParams.get('chat'),
+				authToken: urlParams.get('token')
 			}
 		});
 
-		return success
-			? undefined
-			: new Response('WebSocket upgrade error', { status: 500 });
+		if (success)
+			return new Response('WebSocket upgrade error', { status: 500 });
+
+		throw UserError('Missing data or upgrade failed');
 	}
 
-	async message(ws: ServerWebSocket<WebSocketData>, message: string) {
-		const response = await handleMessage(ws, message, this.dbClient);
-		ws.send(JSON.stringify(response));
+	public async message(ws: ServerWebSocket<WebSocketData>, message: string) {
+		const response = await handleMessage(ws, message, databaseClient);
+		ws.send(JSON.stringify(response || {}));
+	}
+
+	public async open(ws: ServerWebSocket<WebSocketData>) {
+		// TODO:
 	}
 }

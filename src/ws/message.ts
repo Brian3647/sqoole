@@ -9,9 +9,9 @@ export default async function handleMessage(
 	ws: ServerWebSocket<WebSocketData>,
 	message: string,
 	dbClient: SupabaseClient
-): Promise<Message> {
+): Promise<Message | undefined> {
 	if (!ws.data.authToken || !ws.data.channelId) {
-		throw UserError('Missing auth token or channel ID');
+		return;
 	}
 
 	const loginData = parseToken(ws.data.authToken);

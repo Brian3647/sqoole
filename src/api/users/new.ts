@@ -28,13 +28,17 @@ export async function createUser(
 		possibleUser = possibleUserTry || [];
 	}
 
-	const newUser: Partial<User> = {
+	let newUser: Partial<User> = {
 		id: id!,
 		password: password.toString(),
 		username: options.username,
 		in_chats: [],
-		ips: [ip]
+		ips: []
 	};
+
+	if (ip !== '127.0.0.1') {
+		newUser.ips?.push(ip);
+	}
 
 	const { error } = await dbClient.from('users').insert([newUser]).select();
 

@@ -27,7 +27,8 @@ export default class Server {
 		request: Request,
 		server: BunServer
 	): Promise<Response | undefined> {
-		if (webSocketServer.upgrade(request, server)?.ok) return;
+		if (request.url.includes('/ws'))
+			return webSocketServer.upgrade(request, server);
 
 		try {
 			return handleRequest(request, files, databaseClient);
@@ -60,9 +61,9 @@ export default class Server {
 			port: this.port,
 			fetch: this.fetch,
 			websocket: {
-				message: webSocketServer.message
-			},
-			development: true
+				message: webSocketServer.message,
+				open: webSocketServer.open
+			}
 		});
 
 		return console.log('Server ON');

@@ -28,7 +28,7 @@ export async function login(
 
 	if (!validPassword) {
 		throw UserError('Wrong username or password.');
-	} else if (!user.ips.includes(ip)) {
+	} else if (!user.ips.includes(ip) && ip !== '127.0.0.1') {
 		await dbClient
 			.from('users')
 			.update({ ips: [...user.ips, ip] })

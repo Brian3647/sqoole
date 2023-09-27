@@ -10,25 +10,21 @@ export async function getInfo(
 	const options = await getOptions<ChatInfoRequest>(request, ['id', 'token']);
 	const user = await getUser(dbClient, options.token);
 
-	const { data: chatUsers } = await dbClient
+	const { data: chat } = await dbClient
 		.from('chats')
-		.select('users')
+		.select('users, name, owner')
 		.eq('id', options.id);
 
-	if (!chatUsers?.length) {
+	if (!chat?.length) {
 		throw UserError('Chat not found.');
-	} else if (!chatUsers[0].users.includes(user.id)) {
+	} else if (!chat[0].users.includes(user.id)) {
 		throw UserError('User not part of that chat.');
 	}
 
-	const { data: chatName } = await dbClient
-		.from('chats')
-		.select('name')
-		.eq('id', options.id);
-
 	const response = {
-		users: chatUsers[0].users,
-		name: chatName![0].name
+		users: chat[0].users,
+		name: chat[0].name,
+		owner: chat[0].owner
 	};
 
 	return new Response(JSON.stringify(response));
