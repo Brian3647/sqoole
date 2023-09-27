@@ -19,7 +19,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.33.2",
+    "@supabase/supabase-js": "^2.36.0",
     "crypto": "^1.0.1",
     "forwarded-for": "^1.1.0",
     "node-schedule": "^2.1.1"
