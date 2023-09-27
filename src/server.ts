@@ -2,7 +2,7 @@ import staticHandler from './static.ts';
 import apiHandler from './api/api.ts';
 import path from 'node:path';
 import { SupabaseClient } from '@supabase/supabase-js';
-import WebSocketServer from './ws/server.ts';
+import WebSocketServer from './websockets.ts';
 import { Server as BunServer } from 'bun';
 import { RateLimiter } from './rateLimiter.ts';
 import cleanDeletedChats from './api/chats/cleanDeletedChats.ts';

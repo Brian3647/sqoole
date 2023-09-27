@@ -52,7 +52,8 @@ export async function createUser(
 	}
 
 	const returnObject = JSON.stringify({
-		token: createToken(newUser.username!, newUser.password!)
+		token: createToken(newUser.username!, newUser.password!),
+		id: newUser.id
 	});
 
 	return new Response(returnObject);

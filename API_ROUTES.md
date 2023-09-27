@@ -17,7 +17,7 @@
 		-> { old_name: string, new_name: string, new_token: string }
 
 		/new { username: string, password: string }
-		-> { token: string }
+		-> { token: string, id: string }
 
 		/delete { token: string }
 		-> {}

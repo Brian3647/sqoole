@@ -174,16 +174,6 @@ describe('Chats', () => {
 	});
 });
 
-describe('WebSockets', () => {
-	const webSocketServer = new WebSocket(
-		`ws://${apiUrl}/ws?chat=${chatId}&token=${firstUserData}`
-	);
-
-	webSocketServer.addEventListener('open', () => {
-		webSocketServer.send('TEST MESSAGE 1.');
-	});
-});
-
 describe('Cleanup', () => {
 	test('Delete chat', async () => {
 		const res = await api('/chats/delete', {

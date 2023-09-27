@@ -31,7 +31,8 @@ Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for all the information on ho
 
 ## **Project Status**
 
-API is mostly finished (need to finish websockets & banning people from chats). Front-end isn't even started.
+API IS FINISHED !!!!! FINALLY !!!!
+The front-end is ready to be built
 
 <!-- Links -->
 
