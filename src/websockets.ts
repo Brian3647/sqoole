@@ -1,6 +1,6 @@
 import { Server as BunServer, ServerWebSocket } from 'bun';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { UserError } from '$server*';
+import { UserError } from '$server';
 import { parseToken } from '$utils';
 
 export type WebSocketData = {

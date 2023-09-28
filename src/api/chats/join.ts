@@ -1,18 +1,20 @@
-import { UserError } from '$server';
+import { Session, UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getOptions, getUser } from '$utils';
-import { ChatDeletionRequest } from '$users/types';
+import { getOptions, getSession } from '$utils';
 
 const maxUsersInChat = 80;
+
+interface ChatDeletionRequest {
+	id: string;
+	session: string;
+}
 
 export async function joinChat(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const fields = ['id', 'token'];
-	const options = await getOptions<ChatDeletionRequest>(request, fields);
-
-	const user = await getUser(dbClient, options.token);
+	const options = await getOptions<ChatDeletionRequest>(request, ['id']);
+	const { userId } = getSession(options.session);
 
 	const { data: chat } = await dbClient
 		.from('chats')
@@ -21,7 +23,7 @@ export async function joinChat(
 
 	if (!chat?.length) {
 		throw UserError('Requested chat not found.');
-	} else if (chat[0].users.includes(user.id)) {
+	} else if (chat[0].users.includes(userId)) {
 		throw UserError('User is already in specified chat.');
 	} else if (chat[0].users.length >= maxUsersInChat) {
 		throw UserError(`The chat is full (max of ${maxUsersInChat})`);
@@ -29,7 +31,7 @@ export async function joinChat(
 
 	await dbClient
 		.from('chats')
-		.update({ users: [...chat[0].users, user.id] })
+		.update({ users: [...chat[0].users, userId] })
 		.eq('id', options.id);
 
 	return new Response('{}');

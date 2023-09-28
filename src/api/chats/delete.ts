@@ -1,15 +1,19 @@
 import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getOptions, getUser } from '$utils';
-import { ChatDeletionRequest } from '$users/types';
+import { Fields, getOptions, getSession } from '$utils';
+
+interface ChatDeletionRequest {
+	session: string;
+	id: string;
+}
 
 export async function deleteChat(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const fields = ['id', 'token'];
+	const fields: Fields<ChatDeletionRequest> = ['id'];
 	const options = await getOptions<ChatDeletionRequest>(request, fields);
-	const user = await getUser(dbClient, options.token);
+	const session = getSession(options.session);
 
 	const { data: requestedChat } = await dbClient
 		.from('chats')
@@ -18,7 +22,7 @@ export async function deleteChat(
 
 	if (!requestedChat?.length) {
 		throw UserError('Requested chat not found.');
-	} else if (requestedChat[0].owner !== user.id) {
+	} else if (requestedChat[0].owner !== session.userId) {
 		throw UserError('Invalid token: user is not the owner of the chat.');
 	}
 

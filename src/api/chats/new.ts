@@ -1,15 +1,21 @@
 import { ServerError, UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Chat } from './types';
-import { createB64ID, getOptions, getUser } from '$utils';
-import { ChatCreationRequest } from '$users/types';
+import { Fields, createB64ID, getOptions, getSession, getUser } from '$utils';
+
+interface ChatCreationRequest {
+	name: string;
+	days_until_deletion: number;
+	session: string;
+}
 
 export async function createChat(
 	req: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const fields = ['name', 'token', 'days_until_deletion'];
+	const fields: Fields<ChatCreationRequest> = ['name', 'days_until_deletion'];
 	const options = await getOptions<ChatCreationRequest>(req, fields);
+	const session = getSession(options.session);
 
 	const daysUntilDeletion = Number(options.days_until_deletion);
 	if (
@@ -27,7 +33,7 @@ export async function createChat(
 		throw UserError('Chat name too long.');
 	}
 
-	const user = await getUser(dbClient, options.token);
+	const user = await getUser(dbClient, session.token, 'in_chats, id');
 
 	if (!user || (user.in_chats || []).length >= 50) {
 		throw new ServerError(
@@ -37,7 +43,7 @@ export async function createChat(
 		);
 	}
 
-	let id: string = '';
+	let id: string = createB64ID();
 	let possibleChat = [{ hello: ':)' }];
 
 	while (possibleChat.length !== 0) {
@@ -69,21 +75,15 @@ export async function createChat(
 		deleted_at: deletedAt
 	};
 
-	const { error } = await dbClient.from('chats').insert([newChat]).select();
-
-	if (error) {
-		console.error(error);
-		throw new ServerError(
-			'Database',
-			'Internal database error creating chat.',
-			500
-		);
-	}
+	const { data: chat } = await dbClient
+		.from('chats')
+		.insert([newChat])
+		.select();
 
 	await dbClient
 		.from('users')
 		.update({ in_chats: [...user.in_chats, newChat.id] })
 		.eq('id', user.id);
 
-	return new Response(JSON.stringify({ id: newChat.id }));
+	return new Response(JSON.stringify(newChat));
 }

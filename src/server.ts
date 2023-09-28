@@ -13,6 +13,13 @@ let databaseClient: SupabaseClient;
 let webSocketServer: WebSocketServer;
 let rateLimiter: RateLimiter;
 
+export type Session = {
+	userId: string;
+	token: string;
+};
+
+export let sessions: Record<string, Session> = {};
+
 export default class Server {
 	port!: number | string;
 
@@ -78,10 +85,10 @@ async function handleRequest(
 	const path = request.url.split('/').slice(3);
 
 	if (path[0] === 'api') {
-		const [rateLimit, ip] = rateLimiter.check(request);
+		const rateLimit = rateLimiter.check(request);
 		if (rateLimit) return rateLimit;
 
-		return await apiHandler(path, request, dbClient, ip);
+		return await apiHandler(path, request, dbClient);
 	} else {
 		return await staticHandler(path, files);
 	}

@@ -1,8 +1,13 @@
 import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getOptions, getUser } from '$utils';
-import { MessageSendRequest } from '$users/types';
+import { Fields, getOptions, getSession, getUser } from '$utils';
 import { Message } from './types';
+
+interface MessageSendRequest {
+	channel: string;
+	text: string;
+	session: string;
+}
 
 // Will use in the future for WS.
 async function send<T = Message>(
@@ -34,17 +39,17 @@ export async function sendMessage(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const fields = ['token', 'text', 'channel'];
+	const fields: Fields<MessageSendRequest> = ['text', 'channel', 'session'];
 	const options = await getOptions<MessageSendRequest>(request, fields);
-	const user = await getUser(dbClient, options.token);
+	const { userId } = getSession(options.session);
 
 	const newMessage: Message = {
-		author: user.id,
+		author: userId,
 		text: options.text,
 		created_at: Date.now()
 	};
 
 	return new Response(
-		JSON.stringify(send(dbClient, options, newMessage, user.id))
+		JSON.stringify(send(dbClient, options, newMessage, userId))
 	);
 }

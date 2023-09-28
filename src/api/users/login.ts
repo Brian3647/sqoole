@@ -2,24 +2,24 @@ import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
 import { createToken, getOptions } from '$utils';
+import { uncheckedOpenSession } from './openSession';
 
 export async function login(
 	request: Request,
-	dbClient: SupabaseClient,
-	ip: string
+	dbClient: SupabaseClient
 ): Promise<Response> {
 	const options = await getOptions<User>(request, ['username', 'password']);
 
 	const { data: users } = await dbClient
 		.from('users')
-		.select('*')
+		.select('id, created_at, updated_at, password, username, in_chats')
 		.eq('username', options.username);
 
 	if (!users?.length) {
 		throw UserError('Wrong username or password.');
 	}
 
-	const user: User = users[0];
+	const user = users[0];
 
 	const validPassword = await Bun.password.verify(
 		options.password,
@@ -28,21 +28,20 @@ export async function login(
 
 	if (!validPassword) {
 		throw UserError('Wrong username or password.');
-	} else if (!user.ips.includes(ip) && ip !== '127.0.0.1') {
-		await dbClient
-			.from('users')
-			.update({ ips: [...user.ips, ip] })
-			.eq('id', user.id);
 	}
+
+	const token = createToken(user.username, user.password);
+	const session = uncheckedOpenSession(token, user.id);
 
 	return new Response(
 		JSON.stringify({
-			token: createToken(user.username, user.password),
+			token,
 			username: user.username,
 			id: user.id,
 			created_at: user.created_at,
 			updated_at: user.updated_at,
-			in_chats: user.in_chats
+			in_chats: user.in_chats,
+			session
 		})
 	);
 }

@@ -1,17 +1,21 @@
-import { UserError } from '$server';
+import { Session, UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getOptions, getUser } from '$utils';
-import { ChatMessagesRequest } from '$users/types';
+import { getOptions, getSession } from '$utils';
 
 const messagesPerPage = 20;
+
+interface ChatMessagesRequest {
+	id: string;
+	session: string;
+	page?: number;
+}
 
 export async function getMessages(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const fields = ['id', 'token'];
-	const options = await getOptions<ChatMessagesRequest>(request, fields);
-	const user = await getUser(dbClient, options.token);
+	const options = await getOptions<ChatMessagesRequest>(request, ['id']);
+	const { userId } = getSession(options.session);
 
 	const { data: chat } = await dbClient
 		.from('chats')
@@ -20,7 +24,7 @@ export async function getMessages(
 
 	if (!chat?.length) {
 		throw UserError('Chat not found.');
-	} else if (!chat[0].users.includes(user.id)) {
+	} else if (!chat[0].users.includes(userId)) {
 		throw UserError('User not part of that chat.');
 	}
 

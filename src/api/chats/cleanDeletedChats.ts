@@ -14,7 +14,7 @@ export default async function cleanDeletedChats(dbClient: SupabaseClient) {
 	if (!chats?.length) return;
 
 	for (let n = 0; n < chats.length; n++) {
-		for (let i = 0; i < chats[0].users.length; i++) {
+		for (let i = 0; i < (chats[0].users || []).length; i++) {
 			const user = chats[0].users[i];
 			const { data } =
 				(await dbClient.from('users').select('in_chats').eq('id', user)) || [];
@@ -31,5 +31,5 @@ export default async function cleanDeletedChats(dbClient: SupabaseClient) {
 		await dbClient.from('chats').delete().eq('id', chats[0].id);
 	}
 
-	console.log(`Deleted ${chats.length} chat${chats.length > 1 ? 's' : ''}`);
+	console.log(`Deleted ${chats.length} chat${chats.length > 0 ? 's' : ''}`);
 }

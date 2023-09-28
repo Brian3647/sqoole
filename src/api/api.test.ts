@@ -50,6 +50,8 @@ let secondUserToken: string;
 
 let secondUserID: string;
 
+let [firstUserSession, secondUserSession] = ['', ''];
+
 describe('Users', () => {
 	test('Create users', async () => {
 		const res = await api('/users/new', firstUserData);
@@ -58,6 +60,7 @@ describe('Users', () => {
 		expect(res.token).toBeString();
 
 		firstUserToken = res.token;
+		firstUserSession = res.session;
 
 		const res2 = await api('/users/new', secondUserData);
 
@@ -65,6 +68,8 @@ describe('Users', () => {
 		expect(res2.token).toBeString();
 
 		secondUserToken = res2.token;
+		secondUserSession = res2.session;
+		secondUserID = res2.id;
 	});
 
 	test('Login', async () => {
@@ -76,8 +81,6 @@ describe('Users', () => {
 
 		expect(res.token).toBe(firstUserToken);
 		expect(res2.token).toBe(secondUserToken);
-
-		secondUserID = res2.id;
 	});
 
 	test('Token Login', async () => {
@@ -86,24 +89,28 @@ describe('Users', () => {
 	});
 
 	test('Name change', async () => {
-		const res = await api('/users/change_username', {
-			token: firstUserToken,
-			new_username: uuid()
-		});
-
-		expect(res.error).toBe(undefined);
-		expect(res.new_name).toBeString();
-		expect(res.old_name).toBeString();
+		const newSecondUserName = uuid();
 
 		const res2 = await api('/users/change_username', {
-			token: secondUserToken,
-			new_username: uuid()
+			session: secondUserSession,
+			new_username: newSecondUserName
+		});
+
+		secondUserData.username = newSecondUserName;
+
+		expect(res2.error).toBe(undefined);
+
+		secondUserToken = res2.new_token;
+		secondUserSession = res2.new_session;
+	});
+
+	test('Get username', async () => {
+		const res = await api('/users/get_username', {
+			id: secondUserID
 		});
 
 		expect(res.error).toBe(undefined);
-
-		firstUserToken = res.new_token;
-		secondUserToken = res2.new_token;
+		expect(res.username).toBe(secondUserData.username);
 	});
 });
 
@@ -112,7 +119,7 @@ let chatId: string;
 describe('Chats', () => {
 	test('Create chat', async () => {
 		const res = await api('/chats/new', {
-			token: firstUserToken,
+			session: firstUserSession,
 			name: chatName,
 			days_until_deletion: 2
 		});
@@ -124,7 +131,7 @@ describe('Chats', () => {
 
 	test('Get messages', async () => {
 		const res = await api('/chats/get_messages', {
-			token: firstUserToken,
+			session: firstUserSession,
 			id: chatId,
 			page: 0
 		});
@@ -135,7 +142,7 @@ describe('Chats', () => {
 
 	test('Get chats with user', async () => {
 		const res = await api('/chats/get_chats', {
-			token: firstUserToken
+			session: firstUserSession
 		});
 
 		expect(res).toBeArrayOfSize(1);
@@ -144,7 +151,7 @@ describe('Chats', () => {
 
 	test('Join chat', async () => {
 		const res = await api('/chats/join', {
-			token: secondUserToken,
+			session: secondUserSession,
 			id: chatId
 		});
 
@@ -153,8 +160,8 @@ describe('Chats', () => {
 
 	test('Change owner', async () => {
 		const res = await api('/chats/give_owner', {
-			token: firstUserToken,
-			id: chatId,
+			session: firstUserSession,
+			channelId: chatId,
 			new_owner: secondUserID
 		});
 
@@ -163,7 +170,7 @@ describe('Chats', () => {
 
 	test('Get chat information', async () => {
 		const res = await api('/chats/get_information', {
-			token: firstUserToken,
+			session: firstUserSession,
 			id: chatId
 		});
 
@@ -177,7 +184,7 @@ describe('Chats', () => {
 describe('Cleanup', () => {
 	test('Delete chat', async () => {
 		const res = await api('/chats/delete', {
-			token: secondUserToken,
+			session: secondUserSession,
 			id: chatId
 		});
 
@@ -186,11 +193,11 @@ describe('Cleanup', () => {
 
 	test('Delete users', async () => {
 		const res = await api('/users/delete', {
-			token: firstUserToken
+			session: firstUserSession
 		});
 
 		const res2 = await api('/users/delete', {
-			token: secondUserToken
+			session: secondUserSession
 		});
 
 		expect(res.error).toBe(undefined);

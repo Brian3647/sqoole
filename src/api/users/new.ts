@@ -2,11 +2,11 @@ import { ServerError, UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from './types';
 import { createB64ID, createToken, getOptions } from '$utils';
+import { uncheckedOpenSession } from './openSession';
 
 export async function createUser(
 	request: Request,
-	dbClient: SupabaseClient,
-	ip: string
+	dbClient: SupabaseClient
 ): Promise<Response> {
 	const options = await getOptions<User>(request, ['username', 'password']);
 
@@ -32,13 +32,8 @@ export async function createUser(
 		id: id!,
 		password: password.toString(),
 		username: options.username,
-		in_chats: [],
-		ips: []
+		in_chats: []
 	};
-
-	if (ip !== '127.0.0.1') {
-		newUser.ips?.push(ip);
-	}
 
 	const { error } = await dbClient.from('users').insert([newUser]).select();
 
@@ -51,9 +46,13 @@ export async function createUser(
 		);
 	}
 
+	const token = createToken(newUser.username!, newUser.password!);
+	const session = uncheckedOpenSession(token, newUser.id!);
+
 	const returnObject = JSON.stringify({
-		token: createToken(newUser.username!, newUser.password!),
-		id: newUser.id
+		token,
+		session,
+		id
 	});
 
 	return new Response(returnObject);

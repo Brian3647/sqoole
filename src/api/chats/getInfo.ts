@@ -1,14 +1,18 @@
 import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { getOptions, getUser } from '$utils';
-import { ChatInfoRequest } from '$users/types';
+import { getOptions, getSession } from '$utils';
+
+interface ChatInfoRequest {
+	session: string;
+	id: string;
+}
 
 export async function getInfo(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const options = await getOptions<ChatInfoRequest>(request, ['id', 'token']);
-	const user = await getUser(dbClient, options.token);
+	const options = await getOptions<ChatInfoRequest>(request, ['id']);
+	const session = getSession(options.session);
 
 	const { data: chat } = await dbClient
 		.from('chats')
@@ -17,7 +21,7 @@ export async function getInfo(
 
 	if (!chat?.length) {
 		throw UserError('Chat not found.');
-	} else if (!chat[0].users.includes(user.id)) {
+	} else if (!chat[0].users.includes(session.userId)) {
 		throw UserError('User not part of that chat.');
 	}
 

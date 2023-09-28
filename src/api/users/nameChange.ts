@@ -1,16 +1,26 @@
 import { ServerError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { NameChangeRequest } from './types';
-import { createToken, getOptions, getUser } from '$utils';
+import { Fields, createToken, getOptions, getSession, getUser } from '$utils';
+import { uncheckedOpenSession } from './openSession';
+
+interface NameChangeRequest {
+	new_username: string;
+	session: string;
+}
 
 export async function usernameChange(
 	request: Request,
 	dbClient: SupabaseClient
 ): Promise<Response> {
-	const fields = ['new_username', 'token'];
+	const fields: Fields<NameChangeRequest> = ['new_username', 'session'];
 	const options = await getOptions<NameChangeRequest>(request, fields);
+	const session = getSession(options.session);
 
-	const user = await getUser(dbClient, options.token);
+	const user = await getUser(
+		dbClient,
+		session.token,
+		'created_at, updated_at, id, username'
+	);
 
 	if (user.updated_at !== user.created_at && user.updated_at !== null) {
 		const lastUpdated = Date.parse(user.updated_at || user.created_at!);
@@ -31,11 +41,14 @@ export async function usernameChange(
 		.update({ username: options.new_username })
 		.eq('id', user.id);
 
+	const token = createToken(options.new_username, user.password);
+
 	return new Response(
 		JSON.stringify({
 			old_name: user.username,
 			new_name: options.new_username,
-			new_token: createToken(options.new_username, user.password)
+			new_token: token,
+			new_session: uncheckedOpenSession(token, user.id)
 		})
 	);
 }

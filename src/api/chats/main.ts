@@ -26,10 +26,9 @@ const paths: Paths = {
 export default async function chatsApiHandler(
 	path: string[],
 	request: Request,
-	dbClient: SupabaseClient,
-	ip: string
+	dbClient: SupabaseClient
 ): Promise<Response> {
 	const fn = paths[path[2]];
 	if (!fn) throw UserError('Unexistent API route', 404);
-	return await fn(request, dbClient, ip);
+	return await fn(request, dbClient);
 }

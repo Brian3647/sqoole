@@ -1,7 +1,9 @@
 import crypto from 'crypto';
-import { ServerError, UserError } from './server';
+import { ServerError, UserError, sessions, type Session } from './server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from '$api/users/types';
+
+export type Fields<T> = (keyof T)[];
 
 export function debug<T>(value: T): T {
 	console.log(value);
@@ -23,22 +25,27 @@ export function createB64ID(length: number = 8): string {
 	return Buffer.from(randomNumber, 'hex').toString('base64').slice(0, -1);
 }
 
-export async function getRequestJSON<T>(request: Request): Promise<T> {
+export async function getRequestJSON<T extends Record<string, any>>(
+	request: Request
+): Promise<T> {
 	const requestBody = await request.text();
 
 	if (!requestBody) {
 		throw UserError('Invalid JSON object.');
 	}
 
-	let options: T;
+	return JSONParse(requestBody);
+}
 
+export function JSONParse<T>(
+	str: string,
+	error: ServerError = UserError('Invalid JSON object.')
+): T {
 	try {
-		options = JSON.parse(requestBody);
+		return JSON.parse(str);
 	} catch {
-		throw UserError('Invalid JSON object.');
+		throw error;
 	}
-
-	return options;
 }
 
 export function createToken(username: string, hashedPassword: string) {
@@ -64,13 +71,14 @@ export function parseToken(token: string): {
 
 export async function getUser<T = User>(
 	dbClient: SupabaseClient,
-	token: string
+	token: string,
+	select: string = '*'
 ): Promise<T> {
 	const userData = parseToken(token);
 
 	const { data: users } = await dbClient
 		.from('users')
-		.select('*')
+		.select(select as string)
 		.eq('username', userData.username)
 		.eq('password', userData.password);
 
@@ -82,12 +90,16 @@ export async function getUser<T = User>(
 		);
 	}
 
-	return users[0];
+	return users[0] as T;
 }
 
-export async function getOptions<T extends Record<string, any>>(
+export async function getOptions<
+	T extends Record<string, any> = {
+		session: string;
+	}
+>(
 	request: Request,
-	fields: string[] = ['token'],
+	fields: Fields<T> = ['session'] as Fields<T>,
 	error: ServerError = UserError('Missing fields.')
 ): Promise<T> {
 	const data = await getRequestJSON<T>(request);
@@ -99,4 +111,16 @@ export async function getOptions<T extends Record<string, any>>(
 	});
 
 	return data;
+}
+
+export function getSession(maybeSession: string | undefined): Session {
+	const session = sessions[maybeSession || ''] || '';
+
+	if (!session) {
+		throw UserError('Session ID not provided or wrong.');
+	} else if (!session.token || !session.userId) {
+		throw UserError('Invalid session: missing UserID or token');
+	}
+
+	return session;
 }

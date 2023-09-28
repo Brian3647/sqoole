@@ -11,7 +11,6 @@ create table
     username text not null,
     updated_at timestamp with time zone null,
     in_chats text[] not null default '{}'::text[],
-		ips text[] null,
     constraint users_pkey primary key (id),
     constraint users_password_check check ((length(password) < 600)),
     constraint users_username_check check ((length(username) < 80))

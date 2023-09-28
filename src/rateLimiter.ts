@@ -13,16 +13,13 @@ export class RateLimiter {
 		this.requestCounts = new Map<string, number>();
 	}
 
-	check(req: Request): [undefined | Response, string] {
+	check(req: Request): undefined | Response {
 		const ip = forwarded(req, req.headers).ip || '';
 		// TODO: FIXME: USE REQ.IP WHEN IT GETS ADDED ASAP.
 		if (!ip) {
-			return [
-				new Response('Forbidden', {
-					status: 403
-				}),
-				ip
-			];
+			return new Response('Forbidden', {
+				status: 403
+			});
 		}
 
 		const requestCount = this.requestCounts.get(ip) || 0;
@@ -30,13 +27,13 @@ export class RateLimiter {
 			const retryAfter = (this.windowMs / 1000).toString();
 			const headers = new Headers();
 			headers.set('Retry-After', retryAfter);
-			return [
-				new Response('Too Many Requests. Retry after ' + retryAfter + 's.', {
+			return new Response(
+				'Too Many Requests. Retry after ' + retryAfter + 's.',
+				{
 					status: 429,
-					headers: headers
-				}),
-				ip
-			];
+					headers
+				}
+			);
 		}
 
 		this.requestCounts.set(ip, requestCount + 1);
@@ -45,6 +42,6 @@ export class RateLimiter {
 			this.requestCounts.set(ip, 0);
 		}, this.windowMs);
 
-		return [undefined, ip];
+		return undefined;
 	}
 }
