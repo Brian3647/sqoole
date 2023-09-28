@@ -1,3 +1,5 @@
+# This is an archive. The current app is now a private repository as it has gone further than I thought it would. This code, however, will stay here for anyone to use following the MIT license rules.
+
 <div align="center">
 	<a href="https://github.com/Brian3647/sqoole">
     <img src=".github/assets/sqoole_logo.png" alt="Logo" width="150" height="150">
