@@ -25,7 +25,7 @@ export const openSession = async (
 ): Promise<string> => {
 	const options = await getOptions<Options>(request, ['token']);
 	const token = options.token;
-	const user = await getUser(dbClient, token, 'username, password, id');
+	const user = await getUser(dbClient, token, ['username', 'password', 'id']);
 
 	return uncheckedOpenSession(
 		createToken(user.username, user.password),

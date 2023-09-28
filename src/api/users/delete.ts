@@ -1,6 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getOptions, getSession } from '$utils';
-import { endSession } from './endSession';
 import { sessions } from '$server';
 
 export async function deleteUser(

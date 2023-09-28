@@ -16,11 +16,13 @@ export async function usernameChange(
 	const options = await getOptions<NameChangeRequest>(request, fields);
 	const session = getSession(options.session);
 
-	const user = await getUser(
-		dbClient,
-		session.token,
-		'created_at, updated_at, id, username'
-	);
+	const user = await getUser(dbClient, session.token, [
+		'created_at',
+		'updated_at',
+		'id',
+		'username',
+		'password'
+	]);
 
 	if (user.updated_at !== user.created_at && user.updated_at !== null) {
 		const lastUpdated = Date.parse(user.updated_at || user.created_at!);

@@ -11,11 +11,13 @@ export async function tokenLogin(
 	dbClient: SupabaseClient
 ): Promise<Response> {
 	const options = await getOptions<AuthorisedRequest>(request, ['token']);
-	const user = await getUser(
-		dbClient,
-		options.token,
-		'id, created_at, updated_at, in_chats, username'
-	);
+	const user = await getUser(dbClient, options.token, [
+		'id',
+		'created_at',
+		'updated_at',
+		'in_chats',
+		'username'
+	]);
 
 	const session = uncheckedOpenSession(options.token, user.id);
 

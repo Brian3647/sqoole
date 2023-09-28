@@ -69,28 +69,25 @@ export function parseToken(token: string): {
 	};
 }
 
-export async function getUser<T = User>(
+// I know this is a lot of type gymnastics, but its worth for intellisense.
+export async function getUser<T extends keyof User>(
 	dbClient: SupabaseClient,
 	token: string,
-	select: string = '*'
-): Promise<T> {
+	select: ['*'] | T[] = ['*']
+): Promise<Pick<User, T>> {
 	const userData = parseToken(token);
 
 	const { data: users } = await dbClient
 		.from('users')
-		.select(select as string)
+		.select(select.join(', '))
 		.eq('username', userData.username)
 		.eq('password', userData.password);
 
 	if (!users?.length) {
-		throw new ServerError(
-			'User',
-			'Invalid username or password in token.',
-			400
-		);
+		throw UserError('Invalid username or password in token');
 	}
 
-	return users[0] as T;
+	return users[0] as unknown as Pick<User, T>;
 }
 
 export async function getOptions<

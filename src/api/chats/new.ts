@@ -33,7 +33,11 @@ export async function createChat(
 		throw UserError('Chat name too long.');
 	}
 
-	const user = await getUser(dbClient, session.token, 'in_chats, id');
+	const user = await getUser(dbClient, session.token, [
+		'in_chats',
+		'id',
+		'username'
+	]);
 
 	if (!user || (user.in_chats || []).length >= 50) {
 		throw new ServerError(
