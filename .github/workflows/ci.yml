@@ -1,4 +1,4 @@
-name: Bun build
+name: Build & lint
 on:
   push:
     branches: ['main']
@@ -6,6 +6,14 @@ on:
     branches: ['main']
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: oven-sh/setup-bun@v1
+      - name: Build front-end
+        run: bun lint
   frontend:
     runs-on: ubuntu-latest
 

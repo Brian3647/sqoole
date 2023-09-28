@@ -79,10 +79,7 @@ export async function createChat(
 		deleted_at: deletedAt
 	};
 
-	const { data: chat } = await dbClient
-		.from('chats')
-		.insert([newChat])
-		.select();
+	await dbClient.from('chats').insert([newChat]).select();
 
 	await dbClient
 		.from('users')

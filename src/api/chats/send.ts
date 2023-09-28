@@ -1,6 +1,6 @@
 import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
-import { Fields, getOptions, getSession, getUser } from '$utils';
+import { Fields, getOptions, getSession } from '$utils';
 import { Message } from './types';
 
 interface MessageSendRequest {

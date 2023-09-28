@@ -1,27 +1,32 @@
 {
-  "name": "sqoole",
-  "module": "src/index.ts",
-  "type": "module",
-  "scripts": {
-    "watch-web": "cd web && bun run dev",
-    "watch-server": "bun run --watch src/run.ts",
-    "start": "bun run src/run.ts",
-    "build-web": "cd web && bun run generate"
-  },
-  "devDependencies": {
-    "@types/jest": "^29.5.5",
-    "@types/uuid": "^9.0.4",
-    "bun-types": "latest",
-    "prettier": "^3.0.3",
-    "uuid": "^9.0.1"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "@supabase/supabase-js": "^2.36.0",
-    "crypto": "^1.0.1",
-    "forwarded-for": "^1.1.0",
-    "node-schedule": "^2.1.1"
-  }
+	"name": "sqoole",
+	"module": "src/index.ts",
+	"type": "module",
+	"scripts": {
+		"watch-web": "cd web && bun run dev",
+		"watch-server": "bun run --watch src/run.ts",
+		"start": "bun run src/run.ts",
+		"build-web": "cd web && bun run generate",
+		"lint": "eslint ."
+	},
+	"devDependencies": {
+		"@types/jest": "^29.5.5",
+		"@types/uuid": "^9.0.4",
+		"@typescript-eslint/eslint-plugin": "^6.7.3",
+		"@typescript-eslint/parser": "^6.7.3",
+		"bun-types": "latest",
+		"eslint": "^8.50.0",
+		"prettier": "^3.0.3",
+		"typescript": "^5.2.2",
+		"uuid": "^9.0.1"
+	},
+	"peerDependencies": {
+		"typescript": "^5.0.0"
+	},
+	"dependencies": {
+		"@supabase/supabase-js": "^2.36.0",
+		"crypto": "^1.0.1",
+		"forwarded-for": "^1.1.0",
+		"node-schedule": "^2.1.1"
+	}
 }

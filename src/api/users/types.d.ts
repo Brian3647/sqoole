@@ -1,4 +1,4 @@
-export interface User extends Record<string, any> {
+export interface User extends Record<string, string | string[]> {
 	id: string;
 	password: string;
 	username: string;

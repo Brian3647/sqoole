@@ -1,7 +1,5 @@
 import forwarded from 'forwarded-for';
 
-let localReqCount: number = 1;
-
 export class RateLimiter {
 	windowMs: number;
 	maxRequests: number;

@@ -28,7 +28,7 @@ export async function createUser(
 		possibleUser = possibleUserTry || [];
 	}
 
-	let newUser: Partial<User> = {
+	const newUser: Partial<User> = {
 		id: id!,
 		password: password.toString(),
 		username: options.username,

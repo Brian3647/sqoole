@@ -18,7 +18,7 @@ export type Session = {
 	token: string;
 };
 
-export let sessions: Record<string, Session> = {};
+export const sessions: Record<string, Session> = {};
 
 export default class Server {
 	port!: number | string;
@@ -39,22 +39,25 @@ export default class Server {
 
 		try {
 			return handleRequest(request, files, databaseClient);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		} catch (error: any) {
 			if (
 				typeof error === 'string' &&
 				!error.toLowerCase().includes('internal')
 			) {
-				error = UserError(error);
+				return UserError(error).intoResponse();
 			} else {
+				if ('log' in error && 'intoResponse' in error) {
+					error.log(request.url);
+					return error.intoResponse();
+				}
+
 				return new ServerError(
 					'Unknown',
 					'Unknown server error: ' + JSON.stringify(error),
 					500
 				).intoResponse();
 			}
-
-			error.log(request.url);
-			return error.intoResponse();
 		}
 	}
 

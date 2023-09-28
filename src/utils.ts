@@ -25,9 +25,7 @@ export function createB64ID(length: number = 8): string {
 	return Buffer.from(randomNumber, 'hex').toString('base64').slice(0, -1);
 }
 
-export async function getRequestJSON<T extends Record<string, any>>(
-	request: Request
-): Promise<T> {
+export async function getRequestJSON<T>(request: Request): Promise<T> {
 	const requestBody = await request.text();
 
 	if (!requestBody) {
@@ -91,7 +89,7 @@ export async function getUser<T extends keyof User>(
 }
 
 export async function getOptions<
-	T extends Record<string, any> = {
+	T = {
 		session: string;
 	}
 >(

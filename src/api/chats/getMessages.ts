@@ -1,4 +1,4 @@
-import { Session, UserError } from '$server';
+import { UserError } from '$server';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { getOptions, getSession } from '$utils';
 
