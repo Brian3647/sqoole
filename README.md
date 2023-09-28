@@ -21,10 +21,6 @@
 
 Sqoole is a minimalist, open-source messaging app where chats get automatically deleted after less than 7 days. This is specially useful for small conversations that are not meant to be there forever, giving full security and trust to the users.
 
-## **API**
-
-Refer to [API_ROUTES.md](./API_ROUTES.md) for a guide on how to use the API.
-
 ## **Contributing**
 
 Check [CONTRIBUTING.md](./.github/CONTRIBUTING.md) for all the information on how to help the project.
